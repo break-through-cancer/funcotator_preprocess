@@ -1,0 +1,33 @@
+{
+  "form": {
+    "type": "object",
+    "properties": {
+      "vcf": {
+        "title": "Input VCF",
+        "description": "input vcf file",
+        "type": "string",
+        "multiple": false,
+        "pathType": "dataset",
+        "file": "**/*"
+      },
+      "index": {
+        "title": "VCF index",
+        "description": ".tbi file",
+        "type": "string",
+        "multiple": false,
+        "pathType": "dataset",
+        "file": "**/*"
+      },
+      "chain_file": {
+        "title": "chain file",
+        "description": "",
+        "type": "string",
+        "multiple": false,
+        "pathType": "reference",
+        "file": "**/*"
+      }
+    },
+    "required": ["vcf", "chain_file"]
+  },
+  "ui": {}
+}

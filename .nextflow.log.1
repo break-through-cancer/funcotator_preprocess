@@ -1,0 +1,16 @@
+Jun-25 17:12:47.232 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf -with-docker --vcf /Users/jenc/Downloads/GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.vcf --ref_hg38 /Users/jenc/Downloads/Homo_sapiens_assembly38.fasta --chain_file /Users/jenc/Downloads/hg19ToHg38.over.chain --outdir /Users/jenc/Downloads/liftover_results -resume
+Jun-25 17:12:47.285 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 25.10.0
+Jun-25 17:12:47.348 [main] DEBUG nextflow.config.ConfigBuilder - Enabling execution in Docker container as requested by command-line option `-with-docker -`
+Jun-25 17:12:47.354 [main] DEBUG nextflow.cli.Launcher - Operation aborted
+nextflow.exception.AbortOperationException: You have requested to run with Docker but no image was specified
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.configContainer(ConfigBuilder.groovy:804)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.configRunOptions(ConfigBuilder.groovy:764)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.buildConfigObject(ConfigBuilder.groovy:836)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.build(ConfigBuilder.groovy:846)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:358)
+	at nextflow.cli.Launcher.run(Launcher.groovy:515)
+	at nextflow.cli.Launcher.main(Launcher.groovy:675)

@@ -1,0 +1,8 @@
+/work
+/.nextflow
+/.nextflow.log
+/.nextflow/assets
+/.nextflow/cache
+/.nextflow/metadata
+/.nextflow/tmp
+/.nextflow/work

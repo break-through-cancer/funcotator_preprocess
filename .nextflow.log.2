@@ -1,0 +1,168 @@
+Jun-25 17:08:20.445 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf --vcf /Users/jenc/Downloads/GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.vcf --ref_hg38 /Users/jenc/Downloads/Homo_sapiens_assembly38.fasta --chain_file /Users/jenc/Downloads/hg19ToHg38.over.chain --outdir /Users/jenc/Downloads/liftover_results -resume
+Jun-25 17:08:20.493 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 25.10.0
+Jun-25 17:08:20.559 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/Users/jenc/.nextflow/plugins; core-plugins: nf-amazon@3.4.1,nf-azure@1.20.2,nf-cloudcache@0.5.0,nf-codecommit@0.5.0,nf-console@1.3.0,nf-google@1.23.3,nf-k8s@1.2.2,nf-tower@1.17.1,nf-wave@1.16.1
+Jun-25 17:08:20.573 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Jun-25 17:08:20.574 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Jun-25 17:08:20.575 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Jun-25 17:08:20.585 [main] DEBUG nextflow.util.RetryConfig - Missing nextflow session - using default retry config
+Jun-25 17:08:20.664 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Jun-25 17:08:20.665 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Jun-25 17:08:20.665 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[]
+Jun-25 17:08:20.674 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /Users/jenc/.nextflow/secrets/store.json
+Jun-25 17:08:20.681 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@c6a6c1d] - activable => nextflow.secret.LocalSecretsProvider@c6a6c1d
+Jun-25 17:08:20.682 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Jun-25 17:08:20.693 [main] DEBUG nextflow.cli.CmdRun - Launching `main.nf` [silly_thompson] DSL2 - revision: a99cdb1fee
+Jun-25 17:08:20.736 [main] DEBUG nextflow.Session - Session UUID: d5d11bdb-ffce-406c-b760-2989c0396146
+Jun-25 17:08:20.737 [main] DEBUG nextflow.Session - Run name: silly_thompson
+Jun-25 17:08:20.737 [main] DEBUG nextflow.Session - Executor pool size: 12
+Jun-25 17:08:20.743 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Jun-25 17:08:20.747 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Jun-25 17:08:20.764 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 25.10.0 build 10289
+  Created: 22-10-2025 16:26 UTC (12:26 EDT)
+  System: Mac OS X 15.7.7
+  Runtime: Groovy 4.0.28 on Java HotSpot(TM) 64-Bit Server VM 20.0.2+9-78
+  Encoding: UTF-8 (UTF-8)
+  Process: 39868@wm718-194 [10.0.0.197]
+  CPUs: 12 - Mem: 32 GB (285.2 MB) - Swap: 2 GB (1.2 GB)
+Jun-25 17:08:20.778 [main] DEBUG nextflow.Session - Work-dir: /Users/jenc/Desktop/pipelines/funcotator_preprocess/work [Mac OS X]
+Jun-25 17:08:20.778 [main] DEBUG nextflow.Session - Script base path does not exist or is not a directory: /Users/jenc/Desktop/pipelines/funcotator_preprocess/bin
+Jun-25 17:08:20.784 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Jun-25 17:08:20.789 [main] DEBUG nextflow.Session - Observer factory (v2): LinObserverFactory
+Jun-25 17:08:20.790 [main] DEBUG nextflow.Session - Observer factory (v2): DefaultObserverFactory
+Jun-25 17:08:20.814 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Jun-25 17:08:20.819 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 13; maxThreads: 1000
+Jun-25 17:08:20.854 [main] DEBUG nextflow.Session - Session start
+Jun-25 17:08:21.544 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Jun-25 17:08:21.618 [main] INFO  nextflow.script.BaseScript - params.vcf        = /Users/jenc/Downloads/GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.vcf
+Jun-25 17:08:21.618 [main] INFO  nextflow.script.BaseScript - params.ref_hg38   = /Users/jenc/Downloads/Homo_sapiens_assembly38.fasta
+Jun-25 17:08:21.619 [main] INFO  nextflow.script.BaseScript - params.chain_file = /Users/jenc/Downloads/hg19ToHg38.over.chain
+Jun-25 17:08:21.620 [main] INFO  nextflow.script.BaseScript - <nextflow.script.ScriptBinding$ParamsMap@786a3477 scriptAssignment=[outdir, vcf, index, ref_hg38, chain_file] target=[vcf:/Users/jenc/Downloads/GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.vcf, ref_hg38:/Users/jenc/Downloads/Homo_sapiens_assembly38.fasta, chain_file:/Users/jenc/Downloads/hg19ToHg38.over.chain, outdir:/Users/jenc/Downloads/liftover_results, index:null]>
+Jun-25 17:08:21.671 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jun-25 17:08:21.671 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jun-25 17:08:21.685 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Jun-25 17:08:21.691 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=12; memory=32 GB; capacity=12; pollInterval=100ms; dumpInterval=5m
+Jun-25 17:08:21.693 [main] DEBUG n.processor.TaskPollingMonitor - >>> barrier register (monitor: local)
+Jun-25 17:08:21.715 [main] DEBUG nextflow.processor.TaskProcessor - Creating process 'FIX_SAMPLE_HEADERS': maxForks=0; fair=false; array=0
+Jun-25 17:08:21.735 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jun-25 17:08:21.735 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jun-25 17:08:21.736 [main] DEBUG nextflow.processor.TaskProcessor - Creating process 'ADD_CHR_PREFIX': maxForks=0; fair=false; array=0
+Jun-25 17:08:21.739 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jun-25 17:08:21.739 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jun-25 17:08:21.740 [main] DEBUG nextflow.processor.TaskProcessor - Creating process 'LIFTOVER': maxForks=0; fair=false; array=0
+Jun-25 17:08:21.742 [main] DEBUG nextflow.Session - Workflow process names [dsl2]: FIX_SAMPLE_HEADERS, LIFTOVER, ADD_CHR_PREFIX, DOWNLOAD_CHAIN
+Jun-25 17:08:21.743 [main] DEBUG nextflow.Session - Igniting dataflow network (8)
+Jun-25 17:08:21.748 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > FIX_SAMPLE_HEADERS
+Jun-25 17:08:21.748 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > ADD_CHR_PREFIX
+Jun-25 17:08:21.748 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > LIFTOVER
+Jun-25 17:08:21.749 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+  Script_82791e14be163698: /Users/jenc/Desktop/pipelines/funcotator_preprocess/main.nf
+Jun-25 17:08:21.749 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
+Jun-25 17:08:21.749 [main] DEBUG nextflow.Session - Session await
+Jun-25 17:08:21.751 [Actor Thread 4] INFO  nextflow.script.BaseScript - Parsed tumor_name  = GBM1.DFCI4.S1.C4
+Jun-25 17:08:21.752 [Actor Thread 4] INFO  nextflow.script.BaseScript - Parsed normal_name = GBM1.DFCI4.PBMC
+Jun-25 17:08:21.752 [Actor Thread 4] INFO  nextflow.script.BaseScript - Parsed sample_id   = GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC
+Jun-25 17:08:21.853 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Jun-25 17:08:21.854 [Task submitter] INFO  nextflow.Session - [d5/f9c473] Submitted process > FIX_SAMPLE_HEADERS (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC)
+Jun-25 17:08:37.353 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 1; name: FIX_SAMPLE_HEADERS (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC); status: COMPLETED; exit: 0; error: -; workDir: /Users/jenc/Desktop/pipelines/funcotator_preprocess/work/d5/f9c47341e21d803b88edcc7cf84ef5]
+Jun-25 17:08:37.354 [Task monitor] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'TaskFinalizer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Jun-25 17:08:37.391 [TaskFinalizer-1] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'PublishDir' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Jun-25 17:08:37.392 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Jun-25 17:08:37.393 [Task submitter] INFO  nextflow.Session - [a1/5bd101] Submitted process > ADD_CHR_PREFIX (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC)
+Jun-25 17:09:21.174 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 2; name: ADD_CHR_PREFIX (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC); status: COMPLETED; exit: 0; error: -; workDir: /Users/jenc/Desktop/pipelines/funcotator_preprocess/work/a1/5bd101d37cb6cfc54a91d3dbd2eb7e]
+Jun-25 17:09:21.193 [Task submitter] DEBUG n.executor.local.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Jun-25 17:09:21.194 [Task submitter] INFO  nextflow.Session - [e0/39d614] Submitted process > LIFTOVER (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC)
+Jun-25 17:09:22.048 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 3; name: LIFTOVER (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC); status: COMPLETED; exit: 127; error: -; workDir: /Users/jenc/Desktop/pipelines/funcotator_preprocess/work/e0/39d61485fba3a7bf6d72d5847a8883]
+Jun-25 17:09:22.053 [TaskFinalizer-3] DEBUG nextflow.processor.TaskProcessor - Handling unexpected condition for
+  task: name=LIFTOVER (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC); work-dir=/Users/jenc/Desktop/pipelines/funcotator_preprocess/work/e0/39d61485fba3a7bf6d72d5847a8883
+  error [nextflow.exception.ProcessFailedException]: Process `LIFTOVER (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC)` terminated with an error exit status (127)
+Jun-25 17:09:22.068 [TaskFinalizer-3] ERROR nextflow.processor.TaskProcessor - Error executing process > 'LIFTOVER (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC)'
+
+Caused by:
+  Process `LIFTOVER (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC)` terminated with an error exit status (127)
+
+
+Command executed:
+
+  set -euo pipefail
+  
+  DIAG="GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.liftover.diagnostics.txt"
+  
+  echo "===== LIFTOVER =====" > "$DIAG"
+  echo "Sample ID  : GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC"   >> "$DIAG"
+  echo "Tumor name : GBM1.DFCI4.S1.C4"  >> "$DIAG"
+  echo "Normal name: GBM1.DFCI4.PBMC" >> "$DIAG"
+  echo "Input VCF  : GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.chr_prefixed.vcf"         >> "$DIAG"
+  echo "Chain file : hg19ToHg38.over.chain"       >> "$DIAG"
+  echo "Ref FASTA  : Homo_sapiens_assembly38.fasta"   >> "$DIAG"
+  echo "" >> "$DIAG"
+  
+  echo "===== VARIANT COUNT IN =====" >> "$DIAG"
+  grep -vc "^#" GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.chr_prefixed.vcf >> "$DIAG" || true
+  
+  echo "" >> "$DIAG"
+  echo "===== RUNNING LIFTOVER =====" >> "$DIAG"
+  
+  gatk LiftoverVcf         -I  GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.chr_prefixed.vcf         -O  GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.hg38.vcf         -R  Homo_sapiens_assembly38.fasta         --CHAIN  hg19ToHg38.over.chain         --REJECT GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.hg38.rejected.vcf         --RECOVER_SWAPPED_REF_ALT true         --WARN_ON_MISSING_CONTIG true         --MAX_RECORDS_IN_RAM 500000         >> "$DIAG" 2>&1
+  
+  echo "" >> "$DIAG"
+  echo "===== VARIANT COUNT OUT =====" >> "$DIAG"
+  grep -vc "^#" GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.hg38.vcf >> "$DIAG" || true
+  
+  echo "" >> "$DIAG"
+  echo "===== REJECTED COUNT =====" >> "$DIAG"
+  grep -vc "^#" GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.hg38.rejected.vcf >> "$DIAG" || true
+  
+  echo "" >> "$DIAG"
+  echo "===== OUTPUT CONTIG SAMPLE =====" >> "$DIAG"
+  grep -v "^#" GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.hg38.vcf | head -5 | cut -f1 >> "$DIAG" || true
+
+Command exit status:
+  127
+
+Command output:
+  (empty)
+
+Work dir:
+  /Users/jenc/Desktop/pipelines/funcotator_preprocess/work/e0/39d61485fba3a7bf6d72d5847a8883
+
+Tip: you can try to figure out what's wrong by changing to the process work dir and showing the script file named `.command.sh`
+Jun-25 17:09:22.070 [main] DEBUG nextflow.Session - Session await > all processes finished
+Jun-25 17:09:22.070 [TaskFinalizer-3] DEBUG nextflow.Session - Session aborted -- Cause: Process `LIFTOVER (GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC)` terminated with an error exit status (127)
+Jun-25 17:09:22.085 [TaskFinalizer-3] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=2; failedCount=1; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=59.2s; failedDuration=769ms; cachedDuration=0ms;loadCpus=0; loadMemory=0; peakRunning=1; peakCpus=1; peakMemory=0; ]
+Jun-25 17:09:22.153 [Task monitor] DEBUG n.processor.TaskPollingMonitor - <<< barrier arrives (monitor: local) - terminating tasks monitor poll loop
+Jun-25 17:09:22.153 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Jun-25 17:09:22.155 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=2; failedCount=1; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=59.2s; failedDuration=769ms; cachedDuration=0ms;loadCpus=0; loadMemory=0; peakRunning=1; peakCpus=1; peakMemory=0; ]
+Jun-25 17:09:22.155 [TaskFinalizer-3] DEBUG nextflow.Session - null
+java.lang.InterruptedException: null
+	at java.base/java.lang.Object.wait0(Native Method)
+	at java.base/java.lang.Object.wait(Object.java:366)
+	at java.base/java.lang.Thread.join(Thread.java:2115)
+	at java.base/java.lang.Thread.join(Thread.java:2191)
+	at nextflow.trace.AnsiLogObserver.onFlowComplete(AnsiLogObserver.groovy:520)
+	at nextflow.Session$_notifyFlowComplete_lambda39.doCall(Session.groovy:1121)
+	at nextflow.Session.notifyEvent(Session.groovy:1151)
+	at nextflow.Session.notifyFlowComplete(Session.groovy:1121)
+	at nextflow.Session.shutdown0(Session.groovy:779)
+	at nextflow.Session.abort(Session.groovy:834)
+	at nextflow.Session.fault(Session.groovy:796)
+	at nextflow.processor.TaskPollingMonitor.finalizeTask(TaskPollingMonitor.groovy:753)
+	at nextflow.processor.TaskPollingMonitor.safeFinalizeTask(TaskPollingMonitor.groovy:736)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:578)
+	at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:343)
+	at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:328)
+	at groovy.lang.MetaClassImpl.doInvokeMethod(MetaClassImpl.java:1339)
+	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1094)
+	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1007)
+	at org.codehaus.groovy.runtime.InvokerHelper.invokePogoMethod(InvokerHelper.java:645)
+	at org.codehaus.groovy.runtime.InvokerHelper.invokeMethod(InvokerHelper.java:628)
+	at org.codehaus.groovy.runtime.InvokerHelper.invokeMethodSafe(InvokerHelper.java:82)
+	at nextflow.processor.TaskPollingMonitor$_checkTaskStatus_lambda8.doCall(TaskPollingMonitor.groovy:726)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:577)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1623)
+Jun-25 17:09:22.284 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
+Jun-25 17:09:22.293 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

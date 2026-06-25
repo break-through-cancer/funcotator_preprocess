@@ -1,0 +1,117 @@
+Jun-25 17:06:41.430 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf --vcf /Users/jenc/Downloads/GBM1.DFCI4.S1.C4_vs_GBM1.DFCI4.PBMC.vcf --ref_hg38 /Users/jenc/Downloads/Homo_sapiens_assembly38.fasta --chain_file /Users/jenc/Downloads/hg19ToHg38.over.chain --outdir /Users/jenc/Downloads/liftover_results -resume
+Jun-25 17:06:41.477 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 25.10.0
+Jun-25 17:06:41.581 [main] WARN  nextflow.config.ConfigBuilder - It appears you have never run this project before -- Option `-resume` is ignored
+Jun-25 17:06:41.614 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/Users/jenc/.nextflow/plugins; core-plugins: nf-amazon@3.4.1,nf-azure@1.20.2,nf-cloudcache@0.5.0,nf-codecommit@0.5.0,nf-console@1.3.0,nf-google@1.23.3,nf-k8s@1.2.2,nf-tower@1.17.1,nf-wave@1.16.1
+Jun-25 17:06:41.646 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Jun-25 17:06:41.646 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Jun-25 17:06:41.648 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Jun-25 17:06:41.664 [main] DEBUG nextflow.util.RetryConfig - Missing nextflow session - using default retry config
+Jun-25 17:06:41.781 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Jun-25 17:06:41.782 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Jun-25 17:06:41.782 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[]
+Jun-25 17:06:41.794 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /Users/jenc/.nextflow/secrets/store.json
+Jun-25 17:06:41.798 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@66f659e6] - activable => nextflow.secret.LocalSecretsProvider@66f659e6
+Jun-25 17:06:41.800 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declaration
+Jun-25 17:06:41.813 [main] DEBUG nextflow.cli.CmdRun - Launching `main.nf` [marvelous_curran] DSL2 - revision: 33aede6b63
+Jun-25 17:06:41.860 [main] DEBUG nextflow.Session - Session UUID: d5d11bdb-ffce-406c-b760-2989c0396146
+Jun-25 17:06:41.860 [main] DEBUG nextflow.Session - Run name: marvelous_curran
+Jun-25 17:06:41.861 [main] DEBUG nextflow.Session - Executor pool size: 12
+Jun-25 17:06:41.867 [main] DEBUG nextflow.file.FilePorter - File porter settings maxRetries=3; maxTransfers=50; pollTimeout=null
+Jun-25 17:06:41.871 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=36; workQueue=LinkedBlockingQueue[-1]; allowCoreThreadTimeout=false
+Jun-25 17:06:41.953 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 25.10.0 build 10289
+  Created: 22-10-2025 16:26 UTC (12:26 EDT)
+  System: Mac OS X 15.7.7
+  Runtime: Groovy 4.0.28 on Java HotSpot(TM) 64-Bit Server VM 20.0.2+9-78
+  Encoding: UTF-8 (UTF-8)
+  Process: 39678@wm718-194 [10.0.0.197]
+  CPUs: 12 - Mem: 32 GB (241.9 MB) - Swap: 2 GB (1.2 GB)
+Jun-25 17:06:41.967 [main] DEBUG nextflow.Session - Work-dir: /Users/jenc/Desktop/pipelines/funcotator_preprocess/work [Mac OS X]
+Jun-25 17:06:41.967 [main] DEBUG nextflow.Session - Script base path does not exist or is not a directory: /Users/jenc/Desktop/pipelines/funcotator_preprocess/bin
+Jun-25 17:06:41.973 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Jun-25 17:06:41.979 [main] DEBUG nextflow.Session - Observer factory (v2): LinObserverFactory
+Jun-25 17:06:41.980 [main] DEBUG nextflow.Session - Observer factory (v2): DefaultObserverFactory
+Jun-25 17:06:42.004 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Jun-25 17:06:42.010 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 13; maxThreads: 1000
+Jun-25 17:06:42.053 [main] DEBUG nextflow.Session - Session start
+Jun-25 17:06:42.186 [main] DEBUG nextflow.script.ScriptRunner - Parsed script files:
+Jun-25 17:06:42.195 [main] DEBUG n.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=0; failedCount=0; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=0ms; failedDuration=0ms; cachedDuration=0ms;loadCpus=0; loadMemory=0; peakRunning=0; peakCpus=0; peakMemory=0; ]
+Jun-25 17:06:42.266 [main] ERROR nextflow.cli.Launcher - Script compilation error
+- file : /Users/jenc/Desktop/pipelines/funcotator_preprocess/main.nf
+- cause: token recognition error at: '.' @ line 7, column 23.
+   params.outdir     = "$.params.dataset.s3|/data/"
+                         ^
+
+1 error
+
+nextflow.exception.ScriptCompilationException: Script compilation error
+- file : /Users/jenc/Desktop/pipelines/funcotator_preprocess/main.nf
+- cause: token recognition error at: '.' @ line 7, column 23.
+   params.outdir     = "$.params.dataset.s3|/data/"
+                         ^
+
+1 error
+
+	at nextflow.script.parser.v1.ScriptLoaderV1.parse0(ScriptLoaderV1.groovy:204)
+	at nextflow.script.parser.v1.ScriptLoaderV1.parse(ScriptLoaderV1.groovy:215)
+	at nextflow.script.parser.v1.ScriptLoaderV1.parse(ScriptLoaderV1.groovy)
+	at nextflow.script.ScriptRunner.parseScript(ScriptRunner.groovy:232)
+	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:137)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:428)
+	at nextflow.cli.Launcher.run(Launcher.groovy:515)
+	at nextflow.cli.Launcher.main(Launcher.groovy:675)
+Caused by: org.codehaus.groovy.control.MultipleCompilationErrorsException: startup failed:
+Script_a2d5d9117c4ea32a: 7: token recognition error at: '.' @ line 7, column 23.
+   params.outdir     = "$.params.dataset.s3|/data/"
+                         ^
+
+1 error
+
+	at org.codehaus.groovy.control.ErrorCollector.failIfErrors(ErrorCollector.java:292)
+	at org.codehaus.groovy.control.ErrorCollector.addFatalError(ErrorCollector.java:148)
+	at org.apache.groovy.parser.antlr4.AstBuilder.collectSyntaxError(AstBuilder.java:4739)
+	at org.apache.groovy.parser.antlr4.AstBuilder.access$100(AstBuilder.java:169)
+	at org.apache.groovy.parser.antlr4.AstBuilder$3.syntaxError(AstBuilder.java:4750)
+	at groovyjarjarantlr4.v4.runtime.ProxyErrorListener.syntaxError(ProxyErrorListener.java:44)
+	at groovyjarjarantlr4.v4.runtime.Lexer.notifyListeners(Lexer.java:381)
+	at groovyjarjarantlr4.v4.runtime.Lexer.nextToken(Lexer.java:145)
+	at groovyjarjarantlr4.v4.runtime.BufferedTokenStream.fetch(BufferedTokenStream.java:170)
+	at groovyjarjarantlr4.v4.runtime.BufferedTokenStream.sync(BufferedTokenStream.java:153)
+	at groovyjarjarantlr4.v4.runtime.BufferedTokenStream.consume(BufferedTokenStream.java:137)
+	at groovyjarjarantlr4.v4.runtime.Parser.consume(Parser.java:570)
+	at groovyjarjarantlr4.v4.runtime.Parser.match(Parser.java:210)
+	at org.apache.groovy.parser.antlr4.GroovyParser.gstring(GroovyParser.java:4378)
+	at org.apache.groovy.parser.antlr4.GroovyParser.primary(GroovyParser.java:10662)
+	at org.apache.groovy.parser.antlr4.GroovyParser.pathExpression(GroovyParser.java:9864)
+	at org.apache.groovy.parser.antlr4.GroovyParser.postfixExpression(GroovyParser.java:8274)
+	at org.apache.groovy.parser.antlr4.GroovyParser.expression(GroovyParser.java:9061)
+	at org.apache.groovy.parser.antlr4.GroovyParser.commandExpression(GroovyParser.java:9699)
+	at org.apache.groovy.parser.antlr4.GroovyParser.statementExpression(GroovyParser.java:8233)
+	at org.apache.groovy.parser.antlr4.GroovyParser.enhancedStatementExpression(GroovyParser.java:8178)
+	at org.apache.groovy.parser.antlr4.GroovyParser.expression(GroovyParser.java:9558)
+	at org.apache.groovy.parser.antlr4.GroovyParser.commandExpression(GroovyParser.java:9699)
+	at org.apache.groovy.parser.antlr4.GroovyParser.statementExpression(GroovyParser.java:8233)
+	at org.apache.groovy.parser.antlr4.GroovyParser.statement(GroovyParser.java:7078)
+	at org.apache.groovy.parser.antlr4.GroovyParser.scriptStatement(GroovyParser.java:517)
+	at org.apache.groovy.parser.antlr4.GroovyParser.scriptStatements(GroovyParser.java:427)
+	at org.apache.groovy.parser.antlr4.GroovyParser.compilationUnit(GroovyParser.java:363)
+	at org.apache.groovy.parser.antlr4.AstBuilder.buildCST(AstBuilder.java:243)
+	at org.apache.groovy.parser.antlr4.AstBuilder.buildCST(AstBuilder.java:221)
+	at org.apache.groovy.parser.antlr4.AstBuilder.buildAST(AstBuilder.java:262)
+	at org.apache.groovy.parser.antlr4.Antlr4ParserPlugin.buildAST(Antlr4ParserPlugin.java:58)
+	at org.codehaus.groovy.control.SourceUnit.buildAST(SourceUnit.java:256)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1921)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:631)
+	at groovy.lang.GroovyClassLoader.doParseClass(GroovyClassLoader.java:365)
+	at groovy.lang.GroovyClassLoader.lambda$parseClass$2(GroovyClassLoader.java:314)
+	at org.codehaus.groovy.runtime.memoize.StampedCommonCache.compute(StampedCommonCache.java:163)
+	at org.codehaus.groovy.runtime.memoize.StampedCommonCache.getAndPut(StampedCommonCache.java:154)
+	at groovy.lang.GroovyClassLoader.parseClass(GroovyClassLoader.java:314)
+	at groovy.lang.GroovyShell.parseClass(GroovyShell.java:572)
+	at groovy.lang.GroovyShell.parse(GroovyShell.java:585)
+	at groovy.lang.GroovyShell.parse(GroovyShell.java:639)
+	at groovy.lang.GroovyShell.parse(GroovyShell.java:643)
+	at nextflow.script.parser.v1.ScriptLoaderV1.parse0(ScriptLoaderV1.groovy:183)
+	... 7 common frames omitted
