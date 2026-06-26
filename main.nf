@@ -14,7 +14,7 @@ params.chain_file = null   // optional: auto-downloaded from GATK/Broad if not p
 // ── process 1: inject ##tumor_sample / ##normal_sample + add missing sample cols ──
 process FIX_SAMPLE_HEADERS {
     tag "${sample_id}"
-
+    container "broadinstitute/gatk:4.6.2.0"
 
     input:
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
