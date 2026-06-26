@@ -120,7 +120,7 @@ PYEOF
 process ADD_CHR_PREFIX {
     tag "${sample_id}"
 
-    container "python:3.11-slim"
+    container "broadinstitute/gatk:4.5.0.0"
 
     input:
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
