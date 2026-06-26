@@ -10,14 +10,6 @@
         "pathType": "dataset",
         "file": "**/*"
       },
-      "index": {
-        "title": "VCF index",
-        "description": ".tbi file",
-        "type": "string",
-        "multiple": false,
-        "pathType": "dataset",
-        "file": "**/*"
-      },
       "chain_file": {
         "title": "chain file",
         "description": "",
