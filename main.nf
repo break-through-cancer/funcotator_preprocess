@@ -7,7 +7,6 @@ nextflow.enable.dsl=2
 // params.outdir     = "$.params.dataset.s3|/data/"
 // params.outdir = "./results"
 params.vcf        = null
-params.index      = null
 params.ref_fasta   = null
 params.chain_file = null   // optional: auto-downloaded from GATK/Broad if not provided
 
