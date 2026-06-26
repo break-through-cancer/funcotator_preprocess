@@ -120,7 +120,7 @@ PYEOF
 process ADD_CHR_PREFIX {
     tag "${sample_id}"
 
-    container "biocontainers/samtools:v1.9-4-deb_cv1"
+    container "python:3.11-slim"
 
     input:
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
