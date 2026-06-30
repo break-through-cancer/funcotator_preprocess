@@ -190,7 +190,7 @@ process LIFTOVER {
 
     container "broadinstitute/gatk:4.6.2.0"
 
-
+    publishDir "${params.outdir}", mode: "copy"
     input:
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
     path chain
@@ -199,7 +199,7 @@ process LIFTOVER {
     path ref_fai
 
     output:
-    tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}.hg38.vcf"), emit: lifted_vcf
+    tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}_vs_${normal_name}.hg38.vcf"), emit: lifted_vcf
     path "${sample_id}.hg38.rejected.vcf",        emit: rejected_vcf
     path "${sample_id}.liftover.diagnostics.txt", emit: diag
 
@@ -226,7 +226,7 @@ process LIFTOVER {
 
     gatk LiftoverVcf \
         -I  ${vcf} \
-        -O  ${sample_id}.hg38.vcf \
+        -O  ${sample_id}_vs_${normal_name}.hg38.vcf \
         -R  ${ref_fasta} \
         --CHAIN  ${chain} \
         --REJECT ${sample_id}.hg38.rejected.vcf \
@@ -237,7 +237,7 @@ process LIFTOVER {
 
     echo "" >> "\$DIAG"
     echo "===== VARIANT COUNT OUT =====" >> "\$DIAG"
-    grep -vc "^#" ${sample_id}.hg38.vcf >> "\$DIAG" || true
+    grep -vc "^#" ${sample_id}_vs_${normal_name}.hg38.vcf >> "\$DIAG" || true
 
     echo "" >> "\$DIAG"
     echo "===== REJECTED COUNT =====" >> "\$DIAG"
@@ -245,7 +245,7 @@ process LIFTOVER {
 
     echo "" >> "\$DIAG"
     echo "===== OUTPUT CONTIG SAMPLE =====" >> "\$DIAG"
-    grep -v "^#" ${sample_id}.hg38.vcf | head -5 | cut -f1 >> "\$DIAG" || true
+    grep -v "^#" ${sample_id}_vs_${normal_name}.hg38.vcf | head -5 | cut -f1 >> "\$DIAG" || true
     """
 }
 
