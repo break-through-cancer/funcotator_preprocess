@@ -431,7 +431,7 @@ process LIFTOVER {
     path ref_fai
 
     output:
-    tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}_vs_${normal_name}.hg38.vcf"), emit: lifted_vcf
+    tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}.hg38.vcf"), emit: lifted_vcf
     path "${sample_id}.hg38.rejected.vcf", emit: rejected_vcf
     path "${sample_id}.liftover.diagnostics.txt", emit: diag
 
@@ -443,7 +443,7 @@ process LIFTOVER {
 
     gatk LiftoverVcf \
         -I  ${vcf} \
-        -O  ${sample_id}_vs_${normal_name}.hg38.vcf \
+        -O  ${sample_id}.hg38.vcf \
         -R  ${ref_fasta} \
         --CHAIN  ${chain} \
         --REJECT ${sample_id}.hg38.rejected.vcf \
@@ -456,37 +456,32 @@ process LIFTOVER {
 
 // ── workflow ──────────────────────────────────────────────────────────────────
 workflow {
-    println "params.vcf        = ${params.vcf}"
+    println "params.vcf         = ${params.vcf}"
     println "params.ref_fasta   = ${params.ref_fasta}"
-    println "params.chain_file = ${params.chain_file}"
+    println "params.chain_file  = ${params.chain_file}"
+    println "params.tumor_name  = ${params.tumor_name}"
+    println "params.normal_name = ${params.normal_name}"
     println params.dump()
 
-    if (!params.vcf)       error "Missing required parameter: --vcf"
-    if (!params.ref_fasta) error "Missing required parameter: --ref_fasta"
+    if (!params.vcf)         error "Missing required parameter: --vcf"
+    if (!params.ref_fasta)   error "Missing required parameter: --ref_fasta"
+    if (!params.tumor_name)  error "Missing required parameter: --tumor_name"
+    if (!params.normal_name) error "Missing required parameter: --normal_name"
 
     vcf_ch = Channel.fromPath(params.vcf, checkIfExists: true)
-    .map { vcf_file ->
+        .map { vcf_file ->
 
-        def tumor_name  = params.tumor_name
-        def normal_name = params.normal_name
+            def tumor_name  = params.tumor_name
+            def normal_name = params.normal_name
+            def sample_id   = "${tumor_name}_vs_${normal_name}"
 
-        if (!tumor_name?.trim()) {
-            error "Missing required parameter: --tumor_name"
+            println "Input VCF        = ${vcf_file}"
+            println "Tumor name       = ${tumor_name}"
+            println "Normal name      = ${normal_name}"
+            println "Sample ID        = ${sample_id}"
+
+            tuple(sample_id, tumor_name, normal_name, vcf_file)
         }
-
-        if (!normal_name?.trim()) {
-            error "Missing required parameter: --normal_name"
-        }
-
-        def sample_id = "${tumor_name}_vs_${normal_name}"
-
-        println "Input VCF        = ${vcf_file}"
-        println "Tumor name       = ${tumor_name}"
-        println "Normal name      = ${normal_name}"
-        println "Sample ID        = ${sample_id}"
-
-        tuple(sample_id, tumor_name, normal_name, vcf_file)
-    }
 
     if (params.chain_file) {
         chain_ch = Channel.fromPath(params.chain_file, checkIfExists: true)
