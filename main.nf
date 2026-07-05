@@ -97,7 +97,7 @@ PYEOF
 process CONSENSUS_FILTER_AND_CALLER_AF {
     tag "${sample_id}"
 
-    container "python:3.11-slim"
+    container "broadinstitute/gatk:4.5.0.0"
     publishDir "${params.outdir}", mode: "copy"
 
     input:
