@@ -1,0 +1,1 @@
+#TODO: add preprocessing of the samplesheet to get the tumor and normal name for the variables in the vcf header
