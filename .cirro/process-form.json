@@ -17,6 +17,18 @@
         "multiple": false,
         "pathType": "reference",
         "file": "**/*"
+      },
+      "tumor_name": {
+        "title": "Tumor Name",
+        "description": "Name of the tumor sample",
+        "type": "string",
+        "multiple": false
+      },
+      "normal_name": {
+        "title": "Normal Name",
+        "description": "Name of the normal sample",
+        "type": "string",
+        "multiple": false
       }
     },
     "required": ["vcf", "chain_file"]

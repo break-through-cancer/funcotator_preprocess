@@ -6,5 +6,7 @@
     "ref_dict": "s3://broad-references/hg38/v0/Homo_sapiens_assembly38.dict",
     "ref_fai": "s3://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai",
     "ref_fasta": "s3://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta",
-    "chain_file": "$.dataset.params.chain_file"
+    "chain_file": "$.dataset.params.chain_file",
+    "tumor_name": "$.dataset.params.tumor_name",
+    "normal_name": "$.dataset.params.normal_name"
  }

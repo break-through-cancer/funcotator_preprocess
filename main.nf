@@ -4,9 +4,11 @@
 
 nextflow.enable.dsl=2
 
-params.vcf        = null
-params.ref_fasta  = null
-params.chain_file = null
+params.vcf         = null
+params.ref_fasta   = null
+params.chain_file  = null
+params.tumor_name  = null
+params.normal_name = null
 
 // Consensus filtering options
 params.anchor_caller = "M1"
@@ -463,30 +465,28 @@ workflow {
     if (!params.ref_fasta) error "Missing required parameter: --ref_fasta"
 
     vcf_ch = Channel.fromPath(params.vcf, checkIfExists: true)
-        .map { vcf_file ->
-            def filename = vcf_file.name
-            def m = filename =~ /^(.+)_vs_(.+)\.vcf(?:\.gz)?$/
+    .map { vcf_file ->
 
-            if (!m.matches()) {
-                error """
-Invalid input VCF filename.
+        def tumor_name  = params.tumor_name
+        def normal_name = params.normal_name
 
-Expected naming convention:
-    TUMORNAME_vs_NORMALNAME.vcf
-or:
-    TUMORNAME_vs_NORMALNAME.vcf.gz
-
-Got:
-    ${filename}
-"""
-            }
-
-            def tumor_name  = m[0][1]
-            def normal_name = m[0][2]
-            def sample_id = "${tumor_name}_vs_${normal_name}"
-
-            tuple(sample_id, tumor_name, normal_name, vcf_file)
+        if (!tumor_name?.trim()) {
+            error "Missing required parameter: --tumor_name"
         }
+
+        if (!normal_name?.trim()) {
+            error "Missing required parameter: --normal_name"
+        }
+
+        def sample_id = "${tumor_name}_vs_${normal_name}"
+
+        println "Input VCF        = ${vcf_file}"
+        println "Tumor name       = ${tumor_name}"
+        println "Normal name      = ${normal_name}"
+        println "Sample ID        = ${sample_id}"
+
+        tuple(sample_id, tumor_name, normal_name, vcf_file)
+    }
 
     if (params.chain_file) {
         chain_ch = Channel.fromPath(params.chain_file, checkIfExists: true)
