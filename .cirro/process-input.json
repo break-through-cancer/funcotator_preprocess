@@ -3,7 +3,7 @@
     "write_to_cache": true,
     "outdir": "$.params.dataset.s3|/data/",
     "vcf": "$.dataset.params.vcf",
-    "ref_dict": "s3://broad-references/hg38/v0/Homo_sapiens_assembly38.dict",
+    "ref_dict": "s3://broad-references/hg19/v0/Homo_sapiens_assembly19.dict",
     "ref_fai": "s3://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai",
     "ref_fasta": "s3://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta",
     "chain_file": "$.dataset.params.chain_file",
