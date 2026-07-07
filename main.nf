@@ -355,7 +355,53 @@ PYEOF
     """
 }
 
+process ADD_CHR_PREFIX_FOR_HG19 {
+    tag "${sample_id}"
+    container "broadinstitute/gatk:4.6.2.0"
+    publishDir "${params.outdir}", mode: "copy"
 
+    input:
+    tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
+
+    output:
+    tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}.hg19_chr.vcf"), emit: vcf_out
+    path "${sample_id}.hg19_chr.diagnostics.txt", emit: diag
+
+    script:
+    """
+    set -euo pipefail
+
+    OUT="${sample_id}.hg19_chr.vcf"
+    DIAG="${sample_id}.hg19_chr.diagnostics.txt"
+
+    awk '
+    BEGIN { OFS="\\t" }
+
+    /^##contig=/ { next }
+
+    /^#/ {
+        print
+        next
+    }
+
+    {
+        c = \$1
+        sub(/^chr/, "", c)
+
+        if (c == "M" || c == "MT") {
+            \$1 = "chrM"
+        } else if (c ~ /^([0-9]+|X|Y)\$/) {
+            \$1 = "chr" c
+        }
+
+        print
+    }
+    ' ${vcf} > "\$OUT"
+
+    echo "First variant contigs after chr prefix:" > "\$DIAG"
+    grep -v "^#" "\$OUT" | cut -f1 | head -25 >> "\$DIAG" || true
+    """
+}
 process ADD_SOURCE_CONTIG_HEADERS {
     tag "${sample_id}"
     container "broadinstitute/gatk:4.6.2.0"
@@ -531,8 +577,12 @@ workflow {
         FIX_SAMPLE_HEADERS.out[0]
     )
 
+    ADD_CHR_PREFIX_FOR_HG19(
+        CONSENSUS_FILTER_AND_CALLER_AF.out.consensus_vcf
+    )
+
     ADD_SOURCE_CONTIG_HEADERS(
-        CONSENSUS_FILTER_AND_CALLER_AF.out.consensus_vcf,
+        ADD_CHR_PREFIX_FOR_HG19.out.vcf_out,
         source_ref_dict_ch
     )
 
