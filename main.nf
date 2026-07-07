@@ -7,8 +7,7 @@ params.source_ref_dict = null   // SOURCE hg19/b37 dict
 params.target_ref_dict = null   // TARGET hg38 dict
 params.tumor_name      = null
 params.normal_name     = null
-params.outdir          = "./results"
-
+params.outdir          = null
 params.anchor_caller = "M1"
 params.min_non_anchor_callers = 2
 params.consensus_type = "SM"
