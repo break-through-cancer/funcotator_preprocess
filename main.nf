@@ -441,16 +441,35 @@ process LIFTOVER {
 
     DIAG="${sample_id}.liftover.diagnostics.txt"
 
-    gatk LiftoverVcf \
-        -I  ${vcf} \
-        -O  ${sample_id}.hg38.vcf \
-        -R  ${ref_fasta} \
-        --CHAIN  ${chain} \
+    echo "PWD: \$(pwd)" > "\$DIAG"
+    echo "Files staged:" >> "\$DIAG"
+    ls -lh >> "\$DIAG"
+    echo "" >> "\$DIAG"
+
+    echo "Checking inputs..." >> "\$DIAG"
+    ls -lh ${vcf} ${chain} ${ref_fasta} ${ref_dict} ${ref_fai} >> "\$DIAG" 2>&1 || true
+    echo "" >> "\$DIAG"
+
+    echo "VCF header contigs:" >> "\$DIAG"
+    grep '^##contig' ${vcf} | head -20 >> "\$DIAG" 2>&1 || true
+    echo "" >> "\$DIAG"
+
+    echo "Reference contigs:" >> "\$DIAG"
+    cut -f1 ${ref_fai} | head -20 >> "\$DIAG" 2>&1 || true
+    echo "" >> "\$DIAG"
+
+    echo "Running LiftoverVcf..." >> "\$DIAG"
+
+    gatk --java-options "-Xmx24g" LiftoverVcf \
+        -I ${vcf} \
+        -O ${sample_id}.hg38.vcf \
+        -R ${ref_fasta} \
+        --CHAIN ${chain} \
         --REJECT ${sample_id}.hg38.rejected.vcf \
         --RECOVER_SWAPPED_REF_ALT true \
         --WARN_ON_MISSING_CONTIG true \
-        --MAX_RECORDS_IN_RAM 500000 \
-        > "\$DIAG" 2>&1
+        --MAX_RECORDS_IN_RAM 100000 \
+        >> "\$DIAG" 2>&1
     """
 }
 
