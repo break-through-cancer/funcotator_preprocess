@@ -454,6 +454,45 @@ process DOWNLOAD_CHAIN {
     """
 }
 
+process CHECK_VCF_BUILD {
+    tag "${sample_id}"
+    publishDir "${params.outdir}", mode: "copy"
+
+    input:
+    tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
+    path ref_fai
+
+    output:
+    tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf), emit: vcf_out
+    path "${sample_id}.vcf_build_check.txt", emit: diag
+
+    script:
+    """
+    set -euo pipefail
+
+    DIAG="${sample_id}.vcf_build_check.txt"
+
+    echo "Input VCF: ${vcf}" > "\$DIAG"
+    echo "" >> "\$DIAG"
+
+    echo "First variant lines:" >> "\$DIAG"
+    grep -v '^#' ${vcf} | head -20 >> "\$DIAG" || true
+    echo "" >> "\$DIAG"
+
+    echo "VCF contig headers:" >> "\$DIAG"
+    grep '^##contig' ${vcf} | head -30 >> "\$DIAG" || true
+    echo "" >> "\$DIAG"
+
+    echo "Reference fasta contigs:" >> "\$DIAG"
+    cut -f1 ${ref_fai} | head -30 >> "\$DIAG" || true
+    echo "" >> "\$DIAG"
+
+    echo "Variant coordinate summary:" >> "\$DIAG"
+    awk 'BEGIN{FS="\\t"} !/^#/ {print \$1, \$2; n++; if(n>=1000) exit}' ${vcf} \
+      | sort | uniq -c | head -50 >> "\$DIAG" || true
+    """
+}
+
 // ── process 5: GATK LiftoverVcf ───────────────────────────────────────────────
 process LIFTOVER {
     tag "${sample_id}"
@@ -511,6 +550,58 @@ process LIFTOVER {
 }
 
 // ── workflow ──────────────────────────────────────────────────────────────────
+// workflow {
+//     println "params.vcf         = ${params.vcf}"
+//     println "params.ref_fasta   = ${params.ref_fasta}"
+//     println "params.chain_file  = ${params.chain_file}"
+//     println "params.tumor_name  = ${params.tumor_name}"
+//     println "params.normal_name = ${params.normal_name}"
+//     println params.dump()
+
+//     if (!params.vcf)         error "Missing required parameter: --vcf"
+//     if (!params.ref_fasta)   error "Missing required parameter: --ref_fasta"
+//     if (!params.tumor_name)  error "Missing required parameter: --tumor_name"
+//     if (!params.normal_name) error "Missing required parameter: --normal_name"
+
+//     vcf_ch = Channel.fromPath(params.vcf, checkIfExists: true)
+//         .map { vcf_file ->
+
+//             def tumor_name  = params.tumor_name
+//             def normal_name = params.normal_name
+//             def sample_id   = "${tumor_name}_vs_${normal_name}"
+
+//             println "Input VCF        = ${vcf_file}"
+//             println "Tumor name       = ${tumor_name}"
+//             println "Normal name      = ${normal_name}"
+//             println "Sample ID        = ${sample_id}"
+
+//             tuple(sample_id, tumor_name, normal_name, vcf_file)
+//         }
+
+//     if (params.chain_file) {
+//         chain_ch = Channel.fromPath(params.chain_file, checkIfExists: true)
+//     } else {
+//         chain_ch = DOWNLOAD_CHAIN().chain
+//     }
+
+//     ref_fasta_ch = Channel.fromPath(params.ref_fasta, checkIfExists: true)
+//     ref_dict_ch  = Channel.fromPath("${params.ref_fasta}".replaceAll(/\.(fa|fasta)$/, ".dict"), checkIfExists: true)
+//     ref_fai_ch   = Channel.fromPath("${params.ref_fasta}.fai", checkIfExists: true)
+
+//     FIX_SAMPLE_HEADERS(vcf_ch)
+//     CONSENSUS_FILTER_AND_CALLER_AF(FIX_SAMPLE_HEADERS.out[0])
+//     ADD_CHR_PREFIX(CONSENSUS_FILTER_AND_CALLER_AF.out.consensus_vcf)
+
+//     LIFTOVER(
+//         ADD_CHR_PREFIX.out[0],
+//         chain_ch,
+//         ref_fasta_ch,
+//         ref_dict_ch,
+//         ref_fai_ch
+//     )
+// }
+// 
+// ── workflow ──────────────────────────────────────────────────────────────────
 workflow {
     println "params.vcf         = ${params.vcf}"
     println "params.ref_fasta   = ${params.ref_fasta}"
@@ -526,7 +617,6 @@ workflow {
 
     vcf_ch = Channel.fromPath(params.vcf, checkIfExists: true)
         .map { vcf_file ->
-
             def tumor_name  = params.tumor_name
             def normal_name = params.normal_name
             def sample_id   = "${tumor_name}_vs_${normal_name}"
@@ -539,28 +629,24 @@ workflow {
             tuple(sample_id, tumor_name, normal_name, vcf_file)
         }
 
-    if (params.chain_file) {
-        chain_ch = Channel.fromPath(params.chain_file, checkIfExists: true)
-    } else {
-        chain_ch = DOWNLOAD_CHAIN().chain
-    }
-
-    ref_fasta_ch = Channel.fromPath(params.ref_fasta, checkIfExists: true)
-    ref_dict_ch  = Channel.fromPath("${params.ref_fasta}".replaceAll(/\.(fa|fasta)$/, ".dict"), checkIfExists: true)
-    ref_fai_ch   = Channel.fromPath("${params.ref_fasta}.fai", checkIfExists: true)
+    ref_fai_ch = Channel.fromPath("${params.ref_fasta}.fai", checkIfExists: true)
 
     FIX_SAMPLE_HEADERS(vcf_ch)
-    CONSENSUS_FILTER_AND_CALLER_AF(FIX_SAMPLE_HEADERS.out[0])
-    ADD_CHR_PREFIX(CONSENSUS_FILTER_AND_CALLER_AF.out.consensus_vcf)
 
-    LIFTOVER(
+    CONSENSUS_FILTER_AND_CALLER_AF(
+        FIX_SAMPLE_HEADERS.out[0]
+    )
+
+    ADD_CHR_PREFIX(
+        CONSENSUS_FILTER_AND_CALLER_AF.out.consensus_vcf
+    )
+
+    CHECK_VCF_BUILD(
         ADD_CHR_PREFIX.out[0],
-        chain_ch,
-        ref_fasta_ch,
-        ref_dict_ch,
         ref_fai_ch
     )
-}// // takes VCF
+}
+// // takes VCF
 // // filename must be: TUMORNAME_vs_NORMALNAME.vcf OR TUMORNAME_vs_NORMALNAME.vcf.gz
 // // extracts tumor and normal sample names from filename
 
