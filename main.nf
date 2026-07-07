@@ -384,21 +384,52 @@ process ADD_CHR_PREFIX {
 
     DIAG="${sample_id}.chr_prefix.diagnostics.txt"
 
-    echo "===== ADD CHR PREFIX =====" > "\$DIAG"
+    echo "===== ADD CHR PREFIX + KEEP CANONICAL ONLY =====" > "\$DIAG"
+    echo "Input VCF: ${vcf}" >> "\$DIAG"
 
     awk '
+    BEGIN { OFS="\\t" }
+
     /^##contig=/ {
-        if (\$0 !~ /ID=chr/) sub(/ID=/, "ID=chr")
-        print; next
+        line = \$0
+
+        # keep only canonical contig header lines: 1-22, X, Y, MT/M
+        if (line ~ /ID=([0-9]+|X|Y|MT|M)[,>]/) {
+            gsub(/ID=MT/, "ID=chrM", line)
+            gsub(/ID=M/,  "ID=chrM", line)
+            if (line !~ /ID=chr/) sub(/ID=/, "ID=chr", line)
+            print line
+        }
+        next
     }
-    /^#/ { print; next }
-    {
-        if (\$1 ~ /^chr/)             { print; next }
-        if (\$1 == "MT")              { \$1 = "chrM" }
-        else if (\$1 ~ /^[0-9XY]+\$/) { \$1 = "chr" \$1 }
+
+    /^#/ {
         print
+        next
     }
-    ' OFS='\\t' ${vcf} > ${sample_id}.chr_prefixed.vcf
+
+    {
+        c = \$1
+        sub(/^chr/, "", c)
+
+        if (c == "M") c = "MT"
+
+        # keep only canonical data rows
+        if (c ~ /^([0-9]+|X|Y|MT)$/) {
+            if (c == "MT") \$1 = "chrM"
+            else \$1 = "chr" c
+            print
+        }
+    }
+    ' ${vcf} > ${sample_id}.chr_prefixed.vcf
+
+    echo "" >> "\$DIAG"
+    echo "Contigs after filtering/prefixing:" >> "\$DIAG"
+    grep -v '^#' ${sample_id}.chr_prefixed.vcf | cut -f1 | sort -u >> "\$DIAG" || true
+
+    echo "" >> "\$DIAG"
+    echo "Variant count after filtering:" >> "\$DIAG"
+    grep -vc '^#' ${sample_id}.chr_prefixed.vcf >> "\$DIAG" || true
     """
 }
 
