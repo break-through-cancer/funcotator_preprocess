@@ -422,16 +422,25 @@ process ADD_SOURCE_CONTIG_HEADERS {
     OUT="${sample_id}.source_contigs.vcf"
     DIAG="${sample_id}.source_contigs.diagnostics.txt"
 
-    echo "Input VCF: ${vcf}" > "\$DIAG"
-    echo "Source dict: ${source_ref_dict}" >> "\$DIAG"
-    echo "" >> "\$DIAG"
-
     awk '
-      BEGIN { inserted=0 }
+      BEGIN {
+        inserted=0
+        has_incl=0
+      }
+
+      /^##FILTER=<ID=INCL[,>]/ {
+        has_incl=1
+        print
+        next
+      }
 
       /^##contig=/ { next }
 
       /^#CHROM/ && inserted==0 {
+        if (has_incl==0) {
+          print "##FILTER=<ID=INCL,Description=\\"Included variant\\">"
+        }
+
         while ((getline line < "${source_ref_dict}") > 0) {
           if (line ~ /^@SQ/) {
             split(line, fields, "\\t")
@@ -446,6 +455,7 @@ process ADD_SOURCE_CONTIG_HEADERS {
             }
           }
         }
+
         inserted=1
         print
         next
@@ -454,14 +464,16 @@ process ADD_SOURCE_CONTIG_HEADERS {
       { print }
     ' ${vcf} > "\$OUT"
 
-    echo "First contig headers added:" >> "\$DIAG"
+    echo "First FILTER headers:" > "\$DIAG"
+    grep "^##FILTER" "\$OUT" | head -20 >> "\$DIAG" || true
+    echo "" >> "\$DIAG"
+    echo "First contig headers:" >> "\$DIAG"
     grep "^##contig" "\$OUT" | head -25 >> "\$DIAG" || true
     echo "" >> "\$DIAG"
-    echo "First variant contigs:" >> "\$DIAG"
-    grep -v "^#" "\$OUT" | cut -f1 | head -25 >> "\$DIAG" || true
+    echo "First variant lines:" >> "\$DIAG"
+    grep -v "^#" "\$OUT" | head -5 >> "\$DIAG" || true
     """
 }
-
 
 process DOWNLOAD_CHAIN {
     container "curlimages/curl:8.6.0"
