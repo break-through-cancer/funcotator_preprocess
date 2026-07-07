@@ -457,7 +457,7 @@ process DOWNLOAD_CHAIN {
 process CHECK_VCF_BUILD {
     tag "${sample_id}"
     publishDir "${params.outdir}", mode: "copy"
-
+    container "broadinstitute/gatk:4.6.2.0"
     input:
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
     path ref_fai
