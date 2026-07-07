@@ -387,17 +387,20 @@ process ADD_CHR_PREFIX {
     echo "===== ADD CHR PREFIX + KEEP CANONICAL ONLY =====" > "\$DIAG"
     echo "Input VCF: ${vcf}" >> "\$DIAG"
 
-    awk '
+        awk '
     BEGIN { OFS="\\t" }
 
     /^##contig=/ {
         line = \$0
 
-        # keep only canonical contig header lines: 1-22, X, Y, MT/M
         if (line ~ /ID=([0-9]+|X|Y|MT|M)[,>]/) {
             gsub(/ID=MT/, "ID=chrM", line)
             gsub(/ID=M/,  "ID=chrM", line)
-            if (line !~ /ID=chr/) sub(/ID=/, "ID=chr", line)
+
+            if (line !~ /ID=chr/) {
+                sub(/ID=/, "ID=chr", line)
+            }
+
             print line
         }
         next
@@ -412,12 +415,15 @@ process ADD_CHR_PREFIX {
         c = \$1
         sub(/^chr/, "", c)
 
-        if (c == "M") c = "MT"
+        if (c == "M")
+            c = "MT"
 
-        # keep only canonical data rows
-        if (c ~ /^([0-9]+|X|Y|MT)$/) {
-            if (c == "MT") \$1 = "chrM"
-            else \$1 = "chr" c
+        if (c ~ /^([0-9]+|X|Y|MT)\$/) {
+            if (c == "MT")
+                \$1 = "chrM"
+            else
+                \$1 = "chr" c
+
             print
         }
     }
