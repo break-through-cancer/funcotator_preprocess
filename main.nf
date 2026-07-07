@@ -460,7 +460,7 @@ process LIFTOVER {
 
     echo "Running LiftoverVcf..." >> "\$DIAG"
 
-    gatk --java-options "-Xmx24g" LiftoverVcf \
+    gatk --java-options "-Xmx12g" LiftoverVcf \
         -I ${vcf} \
         -O ${sample_id}.hg38.vcf \
         -R ${ref_fasta} \
