@@ -1,12 +1,13 @@
 nextflow.enable.dsl=2
 
-params.vcf         = null
-params.ref_fasta   = null   // TARGET hg38 FASTA
-params.chain_file  = null   // hg19/b37 -> hg38 chain
-params.ref_dict = null // SOURCE hg19/b37 dict
-params.tumor_name  = null
-params.normal_name = null
-params.outdir      = "./results"
+params.vcf             = null
+params.ref_fasta       = null   // TARGET hg38 FASTA
+params.chain_file      = null   // hg19/b37 -> hg38 chain
+params.source_ref_dict = null   // SOURCE hg19/b37 dict
+params.target_ref_dict = null   // TARGET hg38 dict
+params.tumor_name      = null
+params.normal_name     = null
+params.outdir          = "./results"
 
 params.anchor_caller = "M1"
 params.min_non_anchor_callers = 2
@@ -356,28 +357,28 @@ PYEOF
 }
 
 
-process ADD_HG19_CONTIG_HEADERS {
+process ADD_SOURCE_CONTIG_HEADERS {
     tag "${sample_id}"
     container "broadinstitute/gatk:4.6.2.0"
     publishDir "${params.outdir}", mode: "copy"
 
     input:
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
-    path ref_dict
+    path source_ref_dict
 
     output:
-    tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}.hg19_contigs.vcf"), emit: vcf_out
-    path "${sample_id}.hg19_contigs.diagnostics.txt", emit: diag
+    tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}.source_contigs.vcf"), emit: vcf_out
+    path "${sample_id}.source_contigs.diagnostics.txt", emit: diag
 
     script:
     """
     set -euo pipefail
 
-    OUT="${sample_id}.hg19_contigs.vcf"
-    DIAG="${sample_id}.hg19_contigs.diagnostics.txt"
+    OUT="${sample_id}.source_contigs.vcf"
+    DIAG="${sample_id}.source_contigs.diagnostics.txt"
 
     echo "Input VCF: ${vcf}" > "\$DIAG"
-    echo "Source dict: ${ref_dict}" >> "\$DIAG"
+    echo "Source dict: ${source_ref_dict}" >> "\$DIAG"
     echo "" >> "\$DIAG"
 
     awk '
@@ -386,7 +387,7 @@ process ADD_HG19_CONTIG_HEADERS {
       /^##contig=/ { next }
 
       /^#CHROM/ && inserted==0 {
-        while ((getline line < "${ref_dict}") > 0) {
+        while ((getline line < "${source_ref_dict}") > 0) {
           if (line ~ /^@SQ/) {
             split(line, fields, "\\t")
             sn=""
@@ -440,9 +441,9 @@ process LIFTOVER {
     input:
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
     path chain
-    path ref_fasta
-    path ref_dict
-    path ref_fai
+    path target_ref_fasta
+    path target_ref_dict
+    path target_ref_fai
 
     output:
     tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}.hg38.vcf"), emit: lifted_vcf
@@ -457,7 +458,9 @@ process LIFTOVER {
 
     echo "Input VCF: ${vcf}" > "\$DIAG"
     echo "Chain: ${chain}" >> "\$DIAG"
-    echo "Target ref: ${ref_fasta}" >> "\$DIAG"
+    echo "Target ref fasta: ${target_ref_fasta}" >> "\$DIAG"
+    echo "Target ref dict: ${target_ref_dict}" >> "\$DIAG"
+    echo "Target ref fai: ${target_ref_fai}" >> "\$DIAG"
     echo "" >> "\$DIAG"
 
     echo "Input VCF contigs:" >> "\$DIAG"
@@ -465,13 +468,13 @@ process LIFTOVER {
     echo "" >> "\$DIAG"
 
     echo "Target reference contigs:" >> "\$DIAG"
-    cut -f1 ${ref_fai} | head -25 >> "\$DIAG" || true
+    cut -f1 ${target_ref_fai} | head -25 >> "\$DIAG" || true
     echo "" >> "\$DIAG"
 
     gatk --java-options "-Xmx12g" LiftoverVcf \
       -I ${vcf} \
       -O ${sample_id}.hg38.vcf \
-      -R ${ref_fasta} \
+      -R ${target_ref_fasta} \
       --CHAIN ${chain} \
       --REJECT ${sample_id}.hg38.rejected.vcf \
       --RECOVER_SWAPPED_REF_ALT true \
@@ -486,7 +489,8 @@ workflow {
     println "params.vcf             = ${params.vcf}"
     println "params.ref_fasta       = ${params.ref_fasta}"
     println "params.chain_file      = ${params.chain_file}"
-    println "params.ref_dict = ${params.ref_dict}"
+    println "params.source_ref_dict = ${params.source_ref_dict}"
+    println "params.target_ref_dict = ${params.target_ref_dict}"
     println "params.tumor_name      = ${params.tumor_name}"
     println "params.normal_name     = ${params.normal_name}"
     println "params.outdir          = ${params.outdir}"
@@ -494,7 +498,8 @@ workflow {
 
     if (!params.vcf)             error "Missing required parameter: --vcf"
     if (!params.ref_fasta)       error "Missing required parameter: --ref_fasta"
-    if (!params.ref_dict) error "Missing required parameter: --ref_dict"
+    if (!params.source_ref_dict) error "Missing required parameter: --source_ref_dict"
+    if (!params.target_ref_dict) error "Missing required parameter: --target_ref_dict"
     if (!params.tumor_name)      error "Missing required parameter: --tumor_name"
     if (!params.normal_name)     error "Missing required parameter: --normal_name"
 
@@ -504,15 +509,16 @@ workflow {
             def normal_name = params.normal_name
             def sample_id   = "${tumor_name}_vs_${normal_name}"
 
-            println "Input VCF        = ${vcf_file}"
-            println "Tumor name       = ${tumor_name}"
-            println "Normal name      = ${normal_name}"
-            println "Sample ID        = ${sample_id}"
+            println "Input VCF  = ${vcf_file}"
+            println "Sample ID  = ${sample_id}"
 
             tuple(sample_id, tumor_name, normal_name, vcf_file)
         }
 
-    ref_dict_ch = Channel.fromPath(params.ref_dict, checkIfExists: true)
+    source_ref_dict_ch = Channel.fromPath(params.source_ref_dict, checkIfExists: true)
+    target_ref_dict_ch = Channel.fromPath(params.target_ref_dict, checkIfExists: true)
+    target_ref_fasta_ch = Channel.fromPath(params.ref_fasta, checkIfExists: true)
+    target_ref_fai_ch = Channel.fromPath("${params.ref_fasta}.fai", checkIfExists: true)
 
     if (params.chain_file) {
         chain_ch = Channel.fromPath(params.chain_file, checkIfExists: true)
@@ -520,27 +526,23 @@ workflow {
         chain_ch = DOWNLOAD_CHAIN().chain
     }
 
-    ref_fasta_ch = Channel.fromPath(params.ref_fasta, checkIfExists: true)
-    ref_dict_ch  = Channel.fromPath("${params.ref_fasta}".replaceAll(/\.(fa|fasta)$/, ".dict"), checkIfExists: true)
-    ref_fai_ch   = Channel.fromPath("${params.ref_fasta}.fai", checkIfExists: true)
-
     FIX_SAMPLE_HEADERS(vcf_ch)
 
     CONSENSUS_FILTER_AND_CALLER_AF(
         FIX_SAMPLE_HEADERS.out[0]
     )
 
-    ADD_HG19_CONTIG_HEADERS(
+    ADD_SOURCE_CONTIG_HEADERS(
         CONSENSUS_FILTER_AND_CALLER_AF.out.consensus_vcf,
-        ref_dict_ch
+        source_ref_dict_ch
     )
 
     LIFTOVER(
-        ADD_HG19_CONTIG_HEADERS.out.vcf_out,
+        ADD_SOURCE_CONTIG_HEADERS.out.vcf_out,
         chain_ch,
-        ref_fasta_ch,
-        ref_dict_ch,
-        ref_fai_ch
+        target_ref_fasta_ch,
+        target_ref_dict_ch,
+        target_ref_fai_ch
     )
 }// // takes VCF
 // // filename must be: TUMORNAME_vs_NORMALNAME.vcf OR TUMORNAME_vs_NORMALNAME.vcf.gz
