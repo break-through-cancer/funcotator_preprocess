@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 params.vcf         = null
 params.ref_fasta   = null   // TARGET hg38 FASTA
 params.chain_file  = null   // hg19/b37 -> hg38 chain
-params.source_ref_dict = null // SOURCE hg19/b37 dict
+params.ref_dict = null // SOURCE hg19/b37 dict
 params.tumor_name  = null
 params.normal_name = null
 params.outdir      = "./results"
@@ -363,7 +363,7 @@ process ADD_HG19_CONTIG_HEADERS {
 
     input:
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
-    path source_ref_dict
+    path ref_dict
 
     output:
     tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}.hg19_contigs.vcf"), emit: vcf_out
@@ -377,7 +377,7 @@ process ADD_HG19_CONTIG_HEADERS {
     DIAG="${sample_id}.hg19_contigs.diagnostics.txt"
 
     echo "Input VCF: ${vcf}" > "\$DIAG"
-    echo "Source dict: ${source_ref_dict}" >> "\$DIAG"
+    echo "Source dict: ${ref_dict}" >> "\$DIAG"
     echo "" >> "\$DIAG"
 
     awk '
@@ -386,7 +386,7 @@ process ADD_HG19_CONTIG_HEADERS {
       /^##contig=/ { next }
 
       /^#CHROM/ && inserted==0 {
-        while ((getline line < "${source_ref_dict}") > 0) {
+        while ((getline line < "${ref_dict}") > 0) {
           if (line ~ /^@SQ/) {
             split(line, fields, "\\t")
             sn=""
@@ -486,7 +486,7 @@ workflow {
     println "params.vcf             = ${params.vcf}"
     println "params.ref_fasta       = ${params.ref_fasta}"
     println "params.chain_file      = ${params.chain_file}"
-    println "params.source_ref_dict = ${params.source_ref_dict}"
+    println "params.ref_dict = ${params.ref_dict}"
     println "params.tumor_name      = ${params.tumor_name}"
     println "params.normal_name     = ${params.normal_name}"
     println "params.outdir          = ${params.outdir}"
@@ -494,7 +494,7 @@ workflow {
 
     if (!params.vcf)             error "Missing required parameter: --vcf"
     if (!params.ref_fasta)       error "Missing required parameter: --ref_fasta"
-    if (!params.source_ref_dict) error "Missing required parameter: --source_ref_dict"
+    if (!params.ref_dict) error "Missing required parameter: --ref_dict"
     if (!params.tumor_name)      error "Missing required parameter: --tumor_name"
     if (!params.normal_name)     error "Missing required parameter: --normal_name"
 
@@ -512,7 +512,7 @@ workflow {
             tuple(sample_id, tumor_name, normal_name, vcf_file)
         }
 
-    source_ref_dict_ch = Channel.fromPath(params.source_ref_dict, checkIfExists: true)
+    ref_dict_ch = Channel.fromPath(params.ref_dict, checkIfExists: true)
 
     if (params.chain_file) {
         chain_ch = Channel.fromPath(params.chain_file, checkIfExists: true)
@@ -532,7 +532,7 @@ workflow {
 
     ADD_HG19_CONTIG_HEADERS(
         CONSENSUS_FILTER_AND_CALLER_AF.out.consensus_vcf,
-        source_ref_dict_ch
+        ref_dict_ch
     )
 
     LIFTOVER(
