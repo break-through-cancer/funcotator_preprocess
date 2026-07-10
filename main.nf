@@ -1,10 +1,10 @@
 nextflow.enable.dsl=2
 
 params.vcf             = null
-params.ref_fasta       = null   // TARGET hg38 FASTA
-params.chain_file      = null   // hg19/b37 -> hg38 chain
-params.source_ref_dict = null   // SOURCE hg19/b37 dict
-params.target_ref_dict = null   // TARGET hg38 dict
+params.ref_fasta       = null
+params.chain_file      = null
+params.source_ref_dict = null
+params.target_ref_dict = null
 params.tumor_name      = null
 params.normal_name     = null
 params.outdir          = null
@@ -166,13 +166,10 @@ def calc_af(fmt, sample_value):
     keys = fmt.split(":")
     vals = sample_value.split(":")
     data = dict(zip(keys, vals))
-
     ad = data.get("AD")
     dp = data.get("DP")
-
     if not ad or not dp or ad == "." or dp == ".":
         return None, None, None
-
     try:
         depths = [int(x) for x in ad.split(",") if x != "."]
         dp_int = int(dp)
@@ -191,17 +188,9 @@ def empty_caller_values():
         vals[f"DP_{c}"] = "."
     return vals
 
-n_in = 0
-n_type_match = 0
-n_anchor_present = 0
-n_pass_consensus = 0
-n_kept = 0
-n_filtered_type = 0
-n_filtered_no_anchor = 0
-n_filtered_too_few_non_anchor = 0
-n_missing_required = 0
-n_mismatched_caller_tumor_count = 0
-n_missing_af_records = 0
+n_in = n_type_match = n_anchor_present = n_pass_consensus = n_kept = 0
+n_filtered_type = n_filtered_no_anchor = n_filtered_too_few_non_anchor = 0
+n_missing_required = n_mismatched_caller_tumor_count = n_missing_af_records = 0
 caller_combo_counts = Counter()
 
 base_tsv_cols = ["sample", "CHROM", "POS", "ID", "REF", "ALT", "FILTER", "TYPE", "NB_CALLERS", "CALLERS"]
@@ -219,9 +208,9 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
             continue
 
         if line.startswith("#CHROM"):
-            vcf_out.write('##INFO=<ID=CALLER_AF,Number=.,Type=String,Description="Tumor allele fraction per caller calculated from NeoDisc INFO/TUMOR as ALT AD / DP">\\n')
-            vcf_out.write('##INFO=<ID=CALLER_AD,Number=.,Type=String,Description="Tumor AD per caller from NeoDisc INFO/TUMOR">\\n')
-            vcf_out.write('##INFO=<ID=CALLER_DP,Number=.,Type=String,Description="Tumor DP per caller from NeoDisc INFO/TUMOR">\\n')
+            vcf_out.write('##INFO=<ID=CALLER_AF,Number=.,Type=String,Description="Tumor allele fraction per caller">\\n')
+            vcf_out.write('##INFO=<ID=CALLER_AD,Number=.,Type=String,Description="Tumor AD per caller">\\n')
+            vcf_out.write('##INFO=<ID=CALLER_DP,Number=.,Type=String,Description="Tumor DP per caller">\\n')
             for c in known_callers:
                 vcf_out.write(f'##INFO=<ID=AF_{c},Number=1,Type=Float,Description="Tumor allele fraction for caller {c}">\\n')
             vcf_out.write(line)
@@ -237,8 +226,8 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
         info, info_order = parse_info(info_str)
 
         callers_raw = info.get("CALLERS")
-        tumor_raw = info.get("TUMOR")
-        format_raw = info.get("FORMAT")
+        tumor_raw   = info.get("TUMOR")
+        format_raw  = info.get("FORMAT")
 
         if not callers_raw or not tumor_raw or not format_raw:
             n_missing_required += 1
@@ -251,11 +240,11 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
         n_type_match += 1
 
         callers = callers_raw.split("|")
-        tumors = tumor_raw.split("|")
+        tumors  = tumor_raw.split("|")
         callers_upper = [c.upper() for c in callers]
 
-        has_anchor = any(c in anchor_aliases for c in callers_upper)
-        non_anchor_count = sum(c not in anchor_aliases for c in callers_upper)
+        has_anchor        = any(c in anchor_aliases for c in callers_upper)
+        non_anchor_count  = sum(c not in anchor_aliases for c in callers_upper)
 
         if not has_anchor:
             n_filtered_no_anchor += 1
@@ -265,21 +254,20 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
         if non_anchor_count < min_non_anchor_callers:
             n_filtered_too_few_non_anchor += 1
             continue
-
         n_pass_consensus += 1
 
         if len(tumors) != len(callers):
             n_mismatched_caller_tumor_count += 1
             continue
 
-        caller_values = empty_caller_values()
-        caller_af_items = []
-        caller_ad_items = []
-        caller_dp_items = []
+        caller_values    = empty_caller_values()
+        caller_af_items  = []
+        caller_ad_items  = []
+        caller_dp_items  = []
 
         for i, caller in enumerate(callers):
-            fmt_i = get_format_for_caller(format_raw, i, len(callers))
-            af, ad, dp = calc_af(fmt_i, tumors[i])
+            fmt_i        = get_format_for_caller(format_raw, i, len(callers))
+            af, ad, dp   = calc_af(fmt_i, tumors[i])
             caller_clean = sanitize_info_id(caller)
             caller_upper = caller.upper()
 
@@ -311,19 +299,11 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
         vcf_out.write("\\t".join(fields) + "\\n")
 
         row = {
-            "sample": sample_id,
-            "CHROM": chrom,
-            "POS": pos,
-            "ID": var_id,
-            "REF": ref,
-            "ALT": alt,
-            "FILTER": filt,
-            "TYPE": info.get("TYPE", "."),
-            "NB_CALLERS": info.get("NB_CALLERS", "."),
-            "CALLERS": callers_raw,
-            "CALLER_AF": caller_af,
-            "CALLER_AD": caller_ad,
-            "CALLER_DP": caller_dp,
+            "sample": sample_id, "CHROM": chrom, "POS": pos, "ID": var_id,
+            "REF": ref, "ALT": alt, "FILTER": filt,
+            "TYPE": info.get("TYPE", "."), "NB_CALLERS": info.get("NB_CALLERS", "."),
+            "CALLERS": callers_raw, "CALLER_AF": caller_af,
+            "CALLER_AD": caller_ad, "CALLER_DP": caller_dp,
         }
         row.update(caller_values)
         af_out.write("\\t".join(str(row.get(col, ".")) for col in tsv_cols) + "\\n")
@@ -355,10 +335,10 @@ PYEOF
     """
 }
 
+
 process ADD_CHR_PREFIX_FOR_HG19 {
     tag "${sample_id}"
     container "broadinstitute/gatk:4.6.2.0"
-    publishDir "${params.outdir}", mode: "copy"
 
     input:
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
@@ -376,24 +356,13 @@ process ADD_CHR_PREFIX_FOR_HG19 {
 
     awk '
     BEGIN { OFS="\\t" }
-
     /^##contig=/ { next }
-
-    /^#/ {
-        print
-        next
-    }
-
+    /^#/ { print; next }
     {
         c = \$1
         sub(/^chr/, "", c)
-
-        if (c == "M" || c == "MT") {
-            \$1 = "chrM"
-        } else if (c ~ /^([0-9]+|X|Y)\$/) {
-            \$1 = "chr" c
-        }
-
+        if (c == "M" || c == "MT") { \$1 = "chrM" }
+        else if (c ~ /^([0-9]+|X|Y)\$/) { \$1 = "chr" c }
         print
     }
     ' ${vcf} > "\$OUT"
@@ -402,10 +371,11 @@ process ADD_CHR_PREFIX_FOR_HG19 {
     grep -v "^#" "\$OUT" | cut -f1 | head -25 >> "\$DIAG" || true
     """
 }
+
+
 process ADD_SOURCE_CONTIG_HEADERS {
     tag "${sample_id}"
     container "broadinstitute/gatk:4.6.2.0"
-    publishDir "${params.outdir}", mode: "copy"
 
     input:
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
@@ -423,57 +393,36 @@ process ADD_SOURCE_CONTIG_HEADERS {
     DIAG="${sample_id}.source_contigs.diagnostics.txt"
 
     awk '
-      BEGIN {
-        inserted=0
-        has_incl=0
-      }
-
-      /^##FILTER=<ID=INCL[,>]/ {
-        has_incl=1
-        print
-        next
-      }
-
+      BEGIN { inserted=0; has_incl=0 }
+      /^##FILTER=<ID=INCL[,>]/ { has_incl=1; print; next }
       /^##contig=/ { next }
-
       /^#CHROM/ && inserted==0 {
-        if (has_incl==0) {
-          print "##FILTER=<ID=INCL,Description=\\"Included variant\\">"
-        }
-
+        if (has_incl==0) print "##FILTER=<ID=INCL,Description=\\"Included variant\\">"
         while ((getline line < "${source_ref_dict}") > 0) {
           if (line ~ /^@SQ/) {
             split(line, fields, "\\t")
-            sn=""
-            ln=""
+            sn=""; ln=""
             for (i=1; i<=length(fields); i++) {
               if (fields[i] ~ /^SN:/) sn=substr(fields[i],4)
               if (fields[i] ~ /^LN:/) ln=substr(fields[i],4)
             }
-            if (sn != "" && ln != "") {
-              print "##contig=<ID=" sn ",length=" ln ">"
-            }
+            if (sn != "" && ln != "") print "##contig=<ID=" sn ",length=" ln ">"
           }
         }
-
-        inserted=1
-        print
-        next
+        inserted=1; print; next
       }
-
       { print }
     ' ${vcf} > "\$OUT"
 
     echo "First FILTER headers:" > "\$DIAG"
     grep "^##FILTER" "\$OUT" | head -20 >> "\$DIAG" || true
-    echo "" >> "\$DIAG"
     echo "First contig headers:" >> "\$DIAG"
     grep "^##contig" "\$OUT" | head -25 >> "\$DIAG" || true
-    echo "" >> "\$DIAG"
     echo "First variant lines:" >> "\$DIAG"
     grep -v "^#" "\$OUT" | head -5 >> "\$DIAG" || true
     """
 }
+
 
 process DOWNLOAD_CHAIN {
     container "curlimages/curl:8.6.0"
@@ -503,8 +452,10 @@ process LIFTOVER {
     path target_ref_fai
 
     output:
-    tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}.hg38.vcf"), emit: lifted_vcf
-    path "${sample_id}.hg38.rejected.vcf", emit: rejected_vcf
+    tuple val(sample_id), val(tumor_name), val(normal_name),
+          path("${sample_id}.hg38.mutect2.filtered.vcf.gz"),
+          path("${sample_id}.hg38.mutect2.filtered.vcf.gz.tbi"), emit: lifted_vcf
+    path "${sample_id}.hg38.rejected.vcf",        emit: rejected_vcf
     path "${sample_id}.liftover.diagnostics.txt", emit: diag
 
     script:
@@ -516,21 +467,15 @@ process LIFTOVER {
     echo "Input VCF: ${vcf}" > "\$DIAG"
     echo "Chain: ${chain}" >> "\$DIAG"
     echo "Target ref fasta: ${target_ref_fasta}" >> "\$DIAG"
-    echo "Target ref dict: ${target_ref_dict}" >> "\$DIAG"
-    echo "Target ref fai: ${target_ref_fai}" >> "\$DIAG"
     echo "" >> "\$DIAG"
 
     echo "Input VCF contigs:" >> "\$DIAG"
     grep "^##contig" ${vcf} | head -25 >> "\$DIAG" || true
     echo "" >> "\$DIAG"
 
-    echo "Target reference contigs:" >> "\$DIAG"
-    cut -f1 ${target_ref_fai} | head -25 >> "\$DIAG" || true
-    echo "" >> "\$DIAG"
-
     gatk --java-options "-Xmx12g" LiftoverVcf \
       -I ${vcf} \
-      -O ${sample_id}.hg38.vcf \
+      -O ${sample_id}.hg38.raw.vcf \
       -R ${target_ref_fasta} \
       --CHAIN ${chain} \
       --REJECT ${sample_id}.hg38.rejected.vcf \
@@ -538,20 +483,58 @@ process LIFTOVER {
       --WARN_ON_MISSING_CONTIG true \
       --MAX_RECORDS_IN_RAM 100000 \
       >> "\$DIAG" 2>&1
+
+    echo "" >> "\$DIAG"
+    echo "Compressing and indexing output..." >> "\$DIAG"
+
+    bgzip -c ${sample_id}.hg38.raw.vcf > ${sample_id}.hg38.mutect2.filtered.vcf.gz
+    tabix -p vcf ${sample_id}.hg38.mutect2.filtered.vcf.gz
+
+    echo -n "Final variant count: " >> "\$DIAG"
+    bcftools view -H ${sample_id}.hg38.mutect2.filtered.vcf.gz | wc -l >> "\$DIAG"
+    """
+}
+
+
+process MAKE_SAMPLESHEET {
+    tag "${sample_id}"
+    publishDir "${params.outdir}", mode: "copy"
+
+    input:
+    tuple val(sample_id), val(tumor_name), val(normal_name),
+          path(vcf_gz), path(tbi)
+
+    output:
+    path "samplesheet.csv"
+
+    script:
+    """
+    set -euo pipefail
+
+    VCF_NAME=\$(basename ${vcf_gz})
+    TBI_NAME=\$(basename ${tbi})
+
+    {
+        echo "sample,file"
+        echo "${sample_id},\${VCF_NAME}"
+        echo "${sample_id},\${TBI_NAME}"
+    } > samplesheet.csv
     """
 }
 
 
 workflow {
-    println "params.vcf             = ${params.vcf}"
-    println "params.ref_fasta       = ${params.ref_fasta}"
-    println "params.chain_file      = ${params.chain_file}"
-    println "params.source_ref_dict = ${params.source_ref_dict}"
-    println "params.target_ref_dict = ${params.target_ref_dict}"
-    println "params.tumor_name      = ${params.tumor_name}"
-    println "params.normal_name     = ${params.normal_name}"
-    println "params.outdir          = ${params.outdir}"
-    println params.dump()
+    log.info "========================================="
+    log.info "    Consensus Filter + Liftover Pipeline "
+    log.info "========================================="
+    log.info "VCF            : ${params.vcf}"
+    log.info "Ref FASTA      : ${params.ref_fasta}"
+    log.info "Source dict    : ${params.source_ref_dict}"
+    log.info "Target dict    : ${params.target_ref_dict}"
+    log.info "Tumor name     : ${params.tumor_name}"
+    log.info "Normal name    : ${params.normal_name}"
+    log.info "Outdir         : ${params.outdir}"
+    log.info "-----------------------------------------"
 
     if (!params.vcf)             error "Missing required parameter: --vcf"
     if (!params.ref_fasta)       error "Missing required parameter: --ref_fasta"
@@ -562,20 +545,16 @@ workflow {
 
     vcf_ch = Channel.fromPath(params.vcf, checkIfExists: true)
         .map { vcf_file ->
-            def tumor_name  = params.tumor_name
-            def normal_name = params.normal_name
-            def sample_id   = "${tumor_name}_vs_${normal_name}"
-
-            println "Input VCF  = ${vcf_file}"
-            println "Sample ID  = ${sample_id}"
-
-            tuple(sample_id, tumor_name, normal_name, vcf_file)
+            def sample_id = "${params.tumor_name}_vs_${params.normal_name}"
+            log.info "Input VCF  = ${vcf_file}"
+            log.info "Sample ID  = ${sample_id}"
+            tuple(sample_id, params.tumor_name, params.normal_name, vcf_file)
         }
 
-    source_ref_dict_ch = Channel.fromPath(params.source_ref_dict, checkIfExists: true)
-    target_ref_dict_ch = Channel.fromPath(params.target_ref_dict, checkIfExists: true)
-    target_ref_fasta_ch = Channel.fromPath(params.ref_fasta, checkIfExists: true)
-    target_ref_fai_ch = Channel.fromPath("${params.ref_fasta}.fai", checkIfExists: true)
+    source_ref_dict_ch  = Channel.fromPath(params.source_ref_dict, checkIfExists: true)
+    target_ref_dict_ch  = Channel.fromPath(params.target_ref_dict,  checkIfExists: true)
+    target_ref_fasta_ch = Channel.fromPath(params.ref_fasta,        checkIfExists: true)
+    target_ref_fai_ch   = Channel.fromPath("${params.ref_fasta}.fai", checkIfExists: true)
 
     if (params.chain_file) {
         chain_ch = Channel.fromPath(params.chain_file, checkIfExists: true)
@@ -605,7 +584,12 @@ workflow {
         target_ref_dict_ch,
         target_ref_fai_ch
     )
-}// // takes VCF
+
+    MAKE_SAMPLESHEET(
+        LIFTOVER.out.lifted_vcf
+    )
+}
+// // takes VCF
 // // filename must be: TUMORNAME_vs_NORMALNAME.vcf OR TUMORNAME_vs_NORMALNAME.vcf.gz
 // // extracts tumor and normal sample names from filename
 
