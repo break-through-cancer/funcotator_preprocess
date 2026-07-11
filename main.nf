@@ -498,6 +498,7 @@ process LIFTOVER {
 
 process MAKE_SAMPLESHEET {
     tag "${sample_id}"
+    container "broadinstitute/gatk:4.6.2.0"
     publishDir "${params.outdir}", mode: "copy"
 
     input:
