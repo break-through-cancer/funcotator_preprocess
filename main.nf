@@ -88,7 +88,6 @@ PYEOF
     """
 }
 
-
 process CONSENSUS_FILTER_AND_CALLER_AF {
     tag "${sample_id}"
     container "broadinstitute/gatk:4.6.2.0"
@@ -98,9 +97,15 @@ process CONSENSUS_FILTER_AND_CALLER_AF {
     tuple val(sample_id), val(tumor_name), val(normal_name), path(vcf)
 
     output:
-    tuple val(sample_id), val(tumor_name), val(normal_name), path("${sample_id}.consensus.vcf"), emit: consensus_vcf
-    path "${sample_id}.consensus_af.tsv", emit: af_tsv
-    path "${sample_id}.consensus_stats.tsv", emit: stats_tsv
+    tuple val(sample_id), val(tumor_name), val(normal_name),
+          path("${sample_id}.consensus.vcf"),
+          emit: consensus_vcf
+
+    path "${sample_id}.consensus_af.tsv",
+         emit: af_tsv
+
+    path "${sample_id}.consensus_stats.tsv",
+         emit: stats_tsv
 
     script:
     """
@@ -120,114 +125,221 @@ anchor_caller = "${params.anchor_caller}".upper()
 min_non_anchor_callers = int("${params.min_non_anchor_callers}")
 consensus_type = "${params.consensus_type}"
 
-anchor_aliases = {anchor_caller, "M1", "MUTECT1", "MUTECT"}
+anchor_aliases = {
+    anchor_caller,
+    "M1",
+    "MUTECT1",
+    "MUTECT"
+}
+
 known_callers = ["HC", "M1", "M2", "VS"]
+
 
 def parse_info(info_str):
     d = {}
     order = []
+
     if info_str == ".":
         return d, order
+
     for item in info_str.split(";"):
         if not item:
             continue
+
         if "=" in item:
             k, v = item.split("=", 1)
         else:
             k, v = item, True
+
         d[k] = v
         order.append(k)
+
     return d, order
+
 
 def rebuild_info(d, order):
     seen = set()
     items = []
+
     for k in order:
         if k in d and k not in seen:
             v = d[k]
             items.append(k if v is True else f"{k}={v}")
             seen.add(k)
+
     for k, v in d.items():
         if k not in seen:
             items.append(k if v is True else f"{k}={v}")
+
     return ";".join(items) if items else "."
+
 
 def sanitize_info_id(label):
     return re.sub(r"[^A-Za-z0-9_.-]", "_", label)
 
+
 def get_format_for_caller(format_str, idx, n_callers):
     if "|" in format_str:
         parts = format_str.split("|")
+
         if len(parts) == n_callers:
             return parts[idx]
+
     return format_str
+
 
 def calc_af(fmt, sample_value):
     keys = fmt.split(":")
     vals = sample_value.split(":")
     data = dict(zip(keys, vals))
+
     ad = data.get("AD")
     dp = data.get("DP")
+
     if not ad or not dp or ad == "." or dp == ".":
         return None, None, None
+
     try:
-        depths = [int(x) for x in ad.split(",") if x != "."]
+        depths = [
+            int(x)
+            for x in ad.split(",")
+            if x != "."
+        ]
+
         dp_int = int(dp)
+
         if len(depths) < 2 or dp_int <= 0:
             return None, ad, dp
+
         alt_depth = sum(depths[1:])
-        return alt_depth / dp_int, ad, dp
+        af = alt_depth / dp_int
+
+        return af, ad, dp
+
     except Exception:
         return None, ad, dp
 
+
 def empty_caller_values():
     vals = {}
+
     for c in known_callers:
         vals[f"AF_{c}"] = "."
         vals[f"AD_{c}"] = "."
         vals[f"DP_{c}"] = "."
+
     return vals
 
-n_in = n_type_match = n_anchor_present = n_pass_consensus = n_kept = 0
-n_filtered_type = n_filtered_no_anchor = n_filtered_too_few_non_anchor = 0
-n_missing_required = n_mismatched_caller_tumor_count = n_missing_af_records = 0
+
+n_in = 0
+n_type_match = 0
+n_anchor_present = 0
+n_pass_consensus = 0
+n_kept = 0
+
+n_filtered_type = 0
+n_filtered_no_anchor = 0
+n_filtered_too_few_non_anchor = 0
+
+n_missing_required = 0
+n_mismatched_caller_tumor_count = 0
+n_missing_af_records = 0
+
 caller_combo_counts = Counter()
 
-base_tsv_cols = ["sample", "CHROM", "POS", "ID", "REF", "ALT", "FILTER", "TYPE", "NB_CALLERS", "CALLERS"]
-caller_tsv_cols = []
-for c in known_callers:
-    caller_tsv_cols.extend([f"AF_{c}", f"AD_{c}", f"DP_{c}"])
-tsv_cols = base_tsv_cols + caller_tsv_cols + ["CALLER_AF", "CALLER_AD", "CALLER_DP"]
+base_tsv_cols = [
+    "sample",
+    "CHROM",
+    "POS",
+    "ID",
+    "REF",
+    "ALT",
+    "FILTER",
+    "TYPE",
+    "NB_CALLERS",
+    "CALLERS"
+]
 
-with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as af_out:
+caller_tsv_cols = []
+
+for c in known_callers:
+    caller_tsv_cols.extend([
+        f"AF_{c}",
+        f"AD_{c}",
+        f"DP_{c}"
+    ])
+
+tsv_cols = (
+    base_tsv_cols
+    + caller_tsv_cols
+    + [
+        "CALLER_AF",
+        "CALLER_AD",
+        "CALLER_DP"
+    ]
+)
+
+
+with (
+    open(infile) as fh,
+    open(out_vcf, "w") as vcf_out,
+    open(out_af_tsv, "w") as af_out
+):
     af_out.write("\\t".join(tsv_cols) + "\\n")
 
     for line in fh:
+
         if line.startswith("##"):
             vcf_out.write(line)
             continue
 
         if line.startswith("#CHROM"):
-            vcf_out.write('##INFO=<ID=CALLER_AF,Number=.,Type=String,Description="Tumor allele fraction per caller">\\n')
-            vcf_out.write('##INFO=<ID=CALLER_AD,Number=.,Type=String,Description="Tumor AD per caller">\\n')
-            vcf_out.write('##INFO=<ID=CALLER_DP,Number=.,Type=String,Description="Tumor DP per caller">\\n')
+            vcf_out.write(
+                '##INFO=<ID=CALLER_AF,Number=.,Type=String,'
+                'Description="Tumor allele fraction per caller">\\n'
+            )
+
+            vcf_out.write(
+                '##INFO=<ID=CALLER_AD,Number=.,Type=String,'
+                'Description="Tumor AD per caller">\\n'
+            )
+
+            vcf_out.write(
+                '##INFO=<ID=CALLER_DP,Number=.,Type=String,'
+                'Description="Tumor DP per caller">\\n'
+            )
+
             for c in known_callers:
-                vcf_out.write(f'##INFO=<ID=AF_{c},Number=1,Type=Float,Description="Tumor allele fraction for caller {c}">\\n')
+                vcf_out.write(
+                    f'##INFO=<ID=AF_{c},Number=1,Type=Float,'
+                    f'Description="Tumor allele fraction for caller {c}">\\n'
+                )
+
             vcf_out.write(line)
             continue
 
         n_in += 1
+
         fields = line.rstrip("\\n").split("\\t")
+
         if len(fields) < 8:
             n_missing_required += 1
             continue
 
-        chrom, pos, var_id, ref, alt, qual, filt, info_str = fields[:8]
+        chrom = fields[0]
+        pos = fields[1]
+        var_id = fields[2]
+        ref = fields[3]
+        alt = fields[4]
+        qual = fields[5]
+        original_filter = fields[6]
+        info_str = fields[7]
+
         info, info_order = parse_info(info_str)
 
         callers_raw = info.get("CALLERS")
-        tumor_raw   = info.get("TUMOR")
-        format_raw  = info.get("FORMAT")
+        tumor_raw = info.get("TUMOR")
+        format_raw = info.get("FORMAT")
 
         if not callers_raw or not tumor_raw or not format_raw:
             n_missing_required += 1
@@ -237,30 +349,42 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
             if info.get("TYPE") != consensus_type:
                 n_filtered_type += 1
                 continue
+
         n_type_match += 1
 
         callers = callers_raw.split("|")
-        tumors  = tumor_raw.split("|")
+        tumors = tumor_raw.split("|")
         callers_upper = [c.upper() for c in callers]
 
-        has_anchor        = any(c in anchor_aliases for c in callers_upper)
-        non_anchor_count  = sum(c not in anchor_aliases for c in callers_upper)
+        has_anchor = any(
+            c in anchor_aliases
+            for c in callers_upper
+        )
+
+        non_anchor_count = sum(
+            c not in anchor_aliases
+            for c in callers_upper
+        )
 
         if not has_anchor:
             n_filtered_no_anchor += 1
             continue
+
         n_anchor_present += 1
 
         if non_anchor_count < min_non_anchor_callers:
             n_filtered_too_few_non_anchor += 1
             continue
+
         n_pass_consensus += 1
 
         if len(tumors) != len(callers):
             n_mismatched_caller_tumor_count += 1
             continue
 
-        # This variant passed all consensus criteria, so mark it as PASS.
+        # Every record reaching this point passed the consensus criteria.
+        # Set FILTER to PASS so Funcotator does not remove it when
+        # --remove-filtered-variants true is used.
         fields[6] = "PASS"
 
         caller_values = empty_caller_values()
@@ -269,8 +393,17 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
         caller_dp_items = []
 
         for i, caller in enumerate(callers):
-            fmt_i = get_format_for_caller(format_raw, i, len(callers))
-            af, ad, dp = calc_af(fmt_i, tumors[i])
+            fmt_i = get_format_for_caller(
+                format_raw,
+                i,
+                len(callers)
+            )
+
+            af, ad, dp = calc_af(
+                fmt_i,
+                tumors[i]
+            )
+
             caller_clean = sanitize_info_id(caller)
             caller_upper = caller.upper()
 
@@ -281,14 +414,26 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
                 af_str = f"{af:.6f}"
                 info[f"AF_{caller_clean}"] = af_str
 
-            caller_af_items.append(f"{caller}:{af_str}")
-            caller_ad_items.append(f"{caller}:{ad if ad is not None else '.'}")
-            caller_dp_items.append(f"{caller}:{dp if dp is not None else '.'}")
+            caller_af_items.append(
+                f"{caller}:{af_str}"
+            )
+
+            caller_ad_items.append(
+                f"{caller}:{ad if ad is not None else '.'}"
+            )
+
+            caller_dp_items.append(
+                f"{caller}:{dp if dp is not None else '.'}"
+            )
 
             if caller_upper in known_callers:
                 caller_values[f"AF_{caller_upper}"] = af_str
-                caller_values[f"AD_{caller_upper}"] = ad if ad is not None else "."
-                caller_values[f"DP_{caller_upper}"] = dp if dp is not None else "."
+                caller_values[f"AD_{caller_upper}"] = (
+                    ad if ad is not None else "."
+                )
+                caller_values[f"DP_{caller_upper}"] = (
+                    dp if dp is not None else "."
+                )
 
         caller_af = "|".join(caller_af_items)
         caller_ad = "|".join(caller_ad_items)
@@ -298,8 +443,14 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
         info["CALLER_AD"] = caller_ad
         info["CALLER_DP"] = caller_dp
 
-        fields[7] = rebuild_info(info, info_order)
-        vcf_out.write("\t".join(fields) + "\n")
+        fields[7] = rebuild_info(
+            info,
+            info_order
+        )
+
+        vcf_out.write(
+            "\\t".join(fields) + "\\n"
+        )
 
         row = {
             "sample": sample_id,
@@ -308,7 +459,7 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
             "ID": var_id,
             "REF": ref,
             "ALT": alt,
-            "FILTER": fields[6],   # Now reports PASS instead of INCL
+            "FILTER": fields[6],
             "TYPE": info.get("TYPE", "."),
             "NB_CALLERS": info.get("NB_CALLERS", "."),
             "CALLERS": callers_raw,
@@ -316,36 +467,87 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
             "CALLER_AD": caller_ad,
             "CALLER_DP": caller_dp,
         }
+
         row.update(caller_values)
-        af_out.write("\\t".join(str(row.get(col, ".")) for col in tsv_cols) + "\\n")
+
+        af_out.write(
+            "\\t".join(
+                str(row.get(col, "."))
+                for col in tsv_cols
+            ) + "\\n"
+        )
 
         caller_combo_counts[callers_raw] += 1
         n_kept += 1
+
 
 with open(out_stats_tsv, "w") as stats:
     stats.write("metric\\tvalue\\n")
     stats.write(f"input_vcf\\t{infile}\\n")
     stats.write(f"output_vcf\\t{out_vcf}\\n")
     stats.write(f"anchor_caller\\t{anchor_caller}\\n")
-    stats.write(f"min_non_anchor_callers\\t{min_non_anchor_callers}\\n")
-    stats.write(f"required_type\\t{consensus_type}\\n")
-    stats.write(f"variants_read\\t{n_in}\\n")
-    stats.write(f"variants_matching_required_type\\t{n_type_match}\\n")
-    stats.write(f"variants_with_anchor\\t{n_anchor_present}\\n")
-    stats.write(f"variants_passing_consensus_rule\\t{n_pass_consensus}\\n")
-    stats.write(f"variants_kept\\t{n_kept}\\n")
-    stats.write(f"filtered_wrong_type\\t{n_filtered_type}\\n")
-    stats.write(f"filtered_no_anchor\\t{n_filtered_no_anchor}\\n")
-    stats.write(f"filtered_too_few_non_anchor_callers\\t{n_filtered_too_few_non_anchor}\\n")
-    stats.write(f"skipped_missing_required_fields\\t{n_missing_required}\\n")
-    stats.write(f"skipped_mismatched_caller_tumor_count\\t{n_mismatched_caller_tumor_count}\\n")
-    stats.write(f"missing_af_values\\t{n_missing_af_records}\\n")
+    stats.write(
+        f"min_non_anchor_callers\\t"
+        f"{min_non_anchor_callers}\\n"
+    )
+    stats.write(
+        f"required_type\\t"
+        f"{consensus_type}\\n"
+    )
+    stats.write(
+        f"variants_read\\t"
+        f"{n_in}\\n"
+    )
+    stats.write(
+        f"variants_matching_required_type\\t"
+        f"{n_type_match}\\n"
+    )
+    stats.write(
+        f"variants_with_anchor\\t"
+        f"{n_anchor_present}\\n"
+    )
+    stats.write(
+        f"variants_passing_consensus_rule\\t"
+        f"{n_pass_consensus}\\n"
+    )
+    stats.write(
+        f"variants_kept\\t"
+        f"{n_kept}\\n"
+    )
+    stats.write(
+        f"filtered_wrong_type\\t"
+        f"{n_filtered_type}\\n"
+    )
+    stats.write(
+        f"filtered_no_anchor\\t"
+        f"{n_filtered_no_anchor}\\n"
+    )
+    stats.write(
+        f"filtered_too_few_non_anchor_callers\\t"
+        f"{n_filtered_too_few_non_anchor}\\n"
+    )
+    stats.write(
+        f"skipped_missing_required_fields\\t"
+        f"{n_missing_required}\\n"
+    )
+    stats.write(
+        f"skipped_mismatched_caller_tumor_count\\t"
+        f"{n_mismatched_caller_tumor_count}\\n"
+    )
+    stats.write(
+        f"missing_af_values\\t"
+        f"{n_missing_af_records}\\n"
+    )
+
     for combo, count in caller_combo_counts.most_common():
-        stats.write(f"kept_CALLERS_{combo}\\t{count}\\n")
+        stats.write(
+            f"kept_CALLERS_{combo}\\t"
+            f"{count}\\n"
+        )
+
 PYEOF
     """
 }
-
 
 process ADD_CHR_PREFIX_FOR_HG19 {
     tag "${sample_id}"
