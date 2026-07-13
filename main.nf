@@ -260,14 +260,17 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
             n_mismatched_caller_tumor_count += 1
             continue
 
-        caller_values    = empty_caller_values()
-        caller_af_items  = []
-        caller_ad_items  = []
-        caller_dp_items  = []
+        # This variant passed all consensus criteria, so mark it as PASS.
+        fields[6] = "PASS"
+
+        caller_values = empty_caller_values()
+        caller_af_items = []
+        caller_ad_items = []
+        caller_dp_items = []
 
         for i, caller in enumerate(callers):
-            fmt_i        = get_format_for_caller(format_raw, i, len(callers))
-            af, ad, dp   = calc_af(fmt_i, tumors[i])
+            fmt_i = get_format_for_caller(format_raw, i, len(callers))
+            af, ad, dp = calc_af(fmt_i, tumors[i])
             caller_clean = sanitize_info_id(caller)
             caller_upper = caller.upper()
 
@@ -296,14 +299,22 @@ with open(infile) as fh, open(out_vcf, "w") as vcf_out, open(out_af_tsv, "w") as
         info["CALLER_DP"] = caller_dp
 
         fields[7] = rebuild_info(info, info_order)
-        vcf_out.write("\\t".join(fields) + "\\n")
+        vcf_out.write("\t".join(fields) + "\n")
 
         row = {
-            "sample": sample_id, "CHROM": chrom, "POS": pos, "ID": var_id,
-            "REF": ref, "ALT": alt, "FILTER": filt,
-            "TYPE": info.get("TYPE", "."), "NB_CALLERS": info.get("NB_CALLERS", "."),
-            "CALLERS": callers_raw, "CALLER_AF": caller_af,
-            "CALLER_AD": caller_ad, "CALLER_DP": caller_dp,
+            "sample": sample_id,
+            "CHROM": chrom,
+            "POS": pos,
+            "ID": var_id,
+            "REF": ref,
+            "ALT": alt,
+            "FILTER": fields[6],   # Now reports PASS instead of INCL
+            "TYPE": info.get("TYPE", "."),
+            "NB_CALLERS": info.get("NB_CALLERS", "."),
+            "CALLERS": callers_raw,
+            "CALLER_AF": caller_af,
+            "CALLER_AD": caller_ad,
+            "CALLER_DP": caller_dp,
         }
         row.update(caller_values)
         af_out.write("\\t".join(str(row.get(col, ".")) for col in tsv_cols) + "\\n")
